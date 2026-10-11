@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+/* -------------------------------------------------------------
+   DESIGN SYSTEM TOKENS FOR 4 CURATED THEMES
+   ------------------------------------------------------------- */
+:root,
+[data-theme="slate"],
+body.theme-slate {
+  --bg-app: #0a0e17;
+  --bg-header: rgba(13, 19, 33, 0.88);
+  --bg-card: rgba(21, 29, 48, 0.75);
+  --bg-card-hover: rgba(28, 39, 65, 0.9);
+  --bg-code: rgba(10, 14, 25, 0.85);
+  --bg-code-hover: rgba(15, 23, 42, 0.95);
+  --bg-input: rgba(18, 25, 41, 0.9);
+  --bg-subtle: rgba(51, 65, 85, 0.5);
+  --bg-subtle-hover: rgba(71, 85, 105, 0.6);
+  --border-subtle: rgba(51, 65, 85, 0.5);
+  --border-card: rgba(71, 85, 105, 0.45);
+  --border-card-hover: rgba(96, 165, 250, 0.45);
+  --border-focus: #3b82f6;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-code: #60a5fa;
+  --text-code-hover: #93c5fd;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-glow: rgba(37, 99, 235, 0.4);
+  --accent-text: #ffffff;
+  --ring-track: #1e293b;
+  --ring-color: #3b82f6;
+  --modal-bg: #0d1321;
+  --shadow-card: 0 4px 14px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"],
+body.light,
+body.theme-light {
+  --bg-app: #f8fafc;
+  --bg-header: rgba(255, 255, 255, 0.92);
+  --bg-card: #ffffff;
+  --bg-card-hover: #ffffff;
+  --bg-code: #f1f5f9;
+  --bg-code-hover: #e2e8f0;
+  --bg-input: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --bg-subtle-hover: #e2e8f0;
+  --border-subtle: #e2e8f0;
+  --border-card: #e2e8f0;
+  --border-card-hover: #cbd5e1;
+  --border-focus: #2563eb;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-code: #1d4ed8;
+  --text-code-hover: #1e40af;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-glow: rgba(37, 99, 235, 0.25);
+  --accent-text: #ffffff;
+  --ring-track: #e2e8f0;
+  --ring-color: #2563eb;
+  --modal-bg: #ffffff;
+  --shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="oled"],
+body.theme-oled {
+  --bg-app: #000000;
+  --bg-header: rgba(0, 0, 0, 0.92);
+  --bg-card: #0c0c0e;
+  --bg-card-hover: #141418;
+  --bg-code: #050506;
+  --bg-code-hover: #0a0a0d;
+  --bg-input: #08080a;
+  --bg-subtle: #141418;
+  --bg-subtle-hover: #1e1e24;
+  --border-subtle: #1c1c22;
+  --border-card: #202026;
+  --border-card-hover: rgba(16, 185, 129, 0.4);
+  --border-focus: #10b981;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-code: #10b981;
+  --text-code-hover: #34d399;
+  --accent: #059669;
+  --accent-hover: #10b981;
+  --accent-glow: rgba(16, 185, 129, 0.4);
+  --accent-text: #ffffff;
+  --ring-track: #18181c;
+  --ring-color: #10b981;
+  --modal-bg: #09090b;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="violet"],
+body.theme-violet {
+  --bg-app: #0b0816;
+  --bg-header: rgba(15, 11, 28, 0.9);
+  --bg-card: rgba(25, 19, 45, 0.78);
+  --bg-card-hover: rgba(33, 24, 61, 0.9);
+  --bg-code: rgba(14, 10, 25, 0.85);
+  --bg-code-hover: rgba(20, 14, 38, 0.95);
+  --bg-input: #150f28;
+  --bg-subtle: rgba(45, 34, 80, 0.55);
+  --bg-subtle-hover: rgba(65, 48, 110, 0.7);
+  --border-subtle: rgba(65, 48, 110, 0.45);
+  --border-card: rgba(85, 62, 145, 0.45);
+  --border-card-hover: rgba(168, 85, 247, 0.5);
+  --border-focus: #a855f7;
+  --text-primary: #faf5ff;
+  --text-secondary: #c4b5fd;
+  --text-muted: #8b7cb8;
+  --text-code: #c084fc;
+  --text-code-hover: #e9d5ff;
+  --accent: #7c3aed;
+  --accent-hover: #9333ea;
+  --accent-glow: rgba(147, 51, 234, 0.45);
+  --accent-text: #ffffff;
+  --ring-track: #261b46;
+  --ring-color: #c084fc;
+  --modal-bg: #110d22;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  user-select: none;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Remove all scrollbars across all browsers while keeping scrollability */
+*,
+*::before,
+*::after {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar,
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Base Semantic Classes */
+.app-shell {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.app-header {
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.app-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-card:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--border-card-hover);
+  transform: translateY(-1px);
+}
+
+.app-code-box {
+  background-color: var(--bg-code);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-code);
+  transition: all 0.15s ease;
+}
+
+.app-code-box:hover {
+  background-color: var(--bg-code-hover);
+  color: var(--text-code-hover);
+  border-color: var(--border-focus);
+}
+
+.app-input {
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-input:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow) !important;
+}
+
+.app-btn-primary {
+  background-color: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 4px 14px -2px var(--accent-glow);
+  transition: all 0.15s ease;
+}
+
+.app-btn-primary:hover {
+  background-color: var(--accent-hover);
+  filter: brightness(1.05);
+}
+
+.app-btn-secondary {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+}
+
+.app-btn-secondary:hover {
+  background-color: var(--bg-subtle-hover);
+}
+
+.app-modal {
+  background-color: var(--modal-bg);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
+  color: var(--text-primary);
+}
+
+.app-text-muted {
+  color: var(--text-muted);
+}
+
+.app-text-secondary {
+  color: var(--text-secondary);
+}
+
+.app-badge {
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+}

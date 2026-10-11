@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "SecureAuth — 2FA Authenticator",
+  "version": "1.0.0",
+  "description": "Secure, local, offline 2FA authenticator supporting TOTP, HOTP, encrypted backups, and Google Authenticator migration.",
+  "icons": {
+    "16": "public/icons/logo.png",
+    "32": "public/icons/logo.png",
+    "48": "public/icons/logo.png",
+    "128": "public/icons/logo.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SecureAuth 2FA Authenticator",
+    "default_icon": {
+      "16": "public/icons/logo.png",
+      "32": "public/icons/logo.png",
+      "48": "public/icons/logo.png",
+      "128": "public/icons/logo.png"
+    }
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
