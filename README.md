@@ -1,4 +1,4 @@
-# SecureAuth — 2FA Authenticator
+# SynergyKH — 2FA
 
 A production-ready, security-focused Google Chrome extension (Manifest V3) for managing two-factor authentication (2FA) accounts, generating TOTP/HOTP verification codes, and seamlessly importing/exporting accounts with Google Authenticator.
 
@@ -27,7 +27,11 @@ A production-ready, security-focused Google Chrome extension (Manifest V3) for m
   - No account registration or cloud services required.
 - **Polished UI/UX**:
   - Lightweight Chrome action popup (~380px width) with smooth circular countdown animations.
-  - Dark and Light theme support.
+  - 3-Axis Customization:
+    - **Theme Mode**: Dark, Light, and System.
+    - **Accent Color**: Blue, Green, Violet, Yellow, Red, Orange, Cyan, and Rose.
+    - **Design Style**: Rounded (smooth modern corners), Sharp (industrial 0px edges), Compact (dense padding), and Glass (frosted glassmorphism).
+  - Custom Wallpaper Presets and file upload with adjustable dimming.
   - Search by issuer and account label with category groups and favorites/pins.
   - Dedicated Options page dashboard.
 
@@ -162,7 +166,7 @@ make build
    ```
    /Users/nun/Desktop/extension/2fa/dist
    ```
-6. The **SecureAuth — 2FA Authenticator** extension will now appear in your Chrome toolbar.
+6. The **SynergyKH — 2FA** extension will now appear in your Chrome toolbar.
 7. Click the extension icon to open the popup!
 
 ---
@@ -170,6 +174,7 @@ make build
 ## Chrome Web Store Preparation
 
 Before publishing to the Chrome Web Store:
+
 1. Run `make all` to ensure all tests, type checks, and production builds pass.
 2. Verify all icons in `public/icons/` (16x16, 32x32, 48x48, 128x128).
 3. Zip the contents of the `dist` directory:

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Shield,
   Plus,
@@ -9,9 +9,9 @@ import {
   QrCode,
   Sun,
   Moon,
-  Palette,
-} from 'lucide-react';
-import { AuthenticatorAccount, AppSettings, VaultState } from '../types';
+  CheckCircle2,
+} from "lucide-react";
+import { AuthenticatorAccount, AppSettings, VaultState } from "../types";
 import {
   getAllAccounts,
   getSettings,
@@ -23,20 +23,21 @@ import {
   lockVault,
   touchVaultActivity,
   saveAccount,
+  saveAccounts,
   deleteAccount,
   incrementHotpCounter,
   clearAllData,
-} from '../lib/database';
-import { AuthenticatorCard } from './components/AuthenticatorCard';
-import { SearchBar } from './components/SearchBar';
-import { AddAccountModal } from './components/AddAccountModal';
-import { ImportModal } from './components/ImportModal';
-import { ExportModal } from './components/ExportModal';
-import { AccountDetailsModal } from './components/AccountDetailsModal';
-import { SettingsPanel } from './components/SettingsPanel';
-import { PasswordDialog } from './components/PasswordDialog';
-import { t } from '../lib/i18n';
-import { getWallpaperStyle } from '../lib/wallpaper';
+} from "../lib/database";
+import { AuthenticatorCard } from "./components/AuthenticatorCard";
+import { SearchBar } from "./components/SearchBar";
+import { AddAccountModal } from "./components/AddAccountModal";
+import { ImportModal } from "./components/ImportModal";
+import { ExportModal } from "./components/ExportModal";
+import { AccountDetailsModal } from "./components/AccountDetailsModal";
+import { SettingsPanel } from "./components/SettingsPanel";
+import { PasswordDialog } from "./components/PasswordDialog";
+import { t } from "../lib/i18n";
+import { getWallpaperStyle } from "../lib/wallpaper";
 
 export const App: React.FC = () => {
   const [vaultState, setVaultState] = useState<VaultState>({
@@ -45,30 +46,44 @@ export const App: React.FC = () => {
     hasPassword: false,
   });
   const [settings, setSettings] = useState<AppSettings>({
-    theme: 'dark',
+    theme: "dark",
     autoLockTimeout: 5,
     clipboardClearDelay: 30,
     confirmSecretReveal: true,
     confirmPlaintextExport: true,
-    codeGrouping: 'grouped',
-    defaultSort: 'alphabetical',
-    defaultGroup: 'All',
+    codeGrouping: "grouped",
+    defaultSort: "alphabetical",
+    defaultGroup: "All",
   });
   const [accounts, setAccounts] = useState<AuthenticatorAccount[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Search & Filter
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState('All');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("All");
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [importModalTab, setImportModalTab] = useState<"import" | "export">("import");
   const [showExportModal, setShowExportModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<AuthenticatorAccount | null>(null);
-  const [detailsAccount, setDetailsAccount] = useState<AuthenticatorAccount | null>(null);
-  const [pendingBatchImport, setPendingBatchImport] = useState<AuthenticatorAccount[] | null>(null);
+  const [editingAccount, setEditingAccount] =
+    useState<AuthenticatorAccount | null>(null);
+  const [detailsAccount, setDetailsAccount] =
+    useState<AuthenticatorAccount | null>(null);
+  const [pendingBatchImport, setPendingBatchImport] = useState<
+    AuthenticatorAccount[] | null
+  >(null);
+  const [autoTriggerPicker, setAutoTriggerPicker] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  };
 
   const refreshVault = async () => {
     try {
@@ -89,18 +104,50 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     refreshVault();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("action") === "import" || params.get("import") === "1") {
+      setShowImportModal(true);
+      if (params.get("picker") === "1") {
+        setAutoTriggerPicker(true);
+      }
+    }
   }, []);
 
-  useEffect(() => {
-    let themeKey = settings.theme;
-    if (themeKey === 'system') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      themeKey = prefersDark ? 'dark' : 'light';
+  const resolvedMode = useMemo(() => {
+    const mode =
+      settings.mode || (settings.theme === "light" ? "light" : "dark");
+    if (mode === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
     }
-    const dataTheme = themeKey === 'dark' ? 'slate' : themeKey;
-    document.documentElement.setAttribute('data-theme', dataTheme);
-    document.body.className = `theme-${dataTheme} ${dataTheme === 'light' ? 'light' : ''}`.trim();
-  }, [settings.theme]);
+    return mode;
+  }, [settings.mode, settings.theme]);
+
+  const activeColor =
+    settings.accentColor ||
+    (settings.theme === "violet"
+      ? "violet"
+      : settings.theme === "oled"
+        ? "green"
+        : "blue");
+  const activeDesign = settings.designStyle || "rounded";
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-mode", resolvedMode);
+    document.documentElement.setAttribute("data-color", activeColor);
+    document.documentElement.setAttribute("data-design", activeDesign);
+    document.documentElement.setAttribute(
+      "data-theme",
+      resolvedMode === "dark" ? "slate" : "light",
+    );
+    document.documentElement.classList.toggle("dark", resolvedMode === "dark");
+    document.documentElement.classList.toggle("light", resolvedMode === "light");
+    document.documentElement.className =
+      `mode-${resolvedMode} color-${activeColor} design-${activeDesign} ${resolvedMode}`.trim();
+    document.body.className =
+      `mode-${resolvedMode} color-${activeColor} design-${activeDesign} ${resolvedMode}`.trim();
+  }, [resolvedMode, activeColor, activeDesign]);
 
   const handleUnlock = async (password: string): Promise<boolean> => {
     const success = await unlockVault(password);
@@ -141,7 +188,11 @@ export const App: React.FC = () => {
   };
 
   const handleTogglePin = async (account: AuthenticatorAccount) => {
-    const updatedAccount = { ...account, isPinned: !account.isPinned, updatedAt: Date.now() };
+    const updatedAccount = {
+      ...account,
+      isPinned: !account.isPinned,
+      updatedAt: Date.now(),
+    };
     await saveAccount(updatedAccount);
     const updated = await getAllAccounts();
     setAccounts(updated);
@@ -157,12 +208,19 @@ export const App: React.FC = () => {
   };
 
   const handleImportAccounts = async (importedList: AuthenticatorAccount[]) => {
-    for (const acc of importedList) {
-      await saveAccount(acc);
+    if (!vaultState.isInitialized) {
+      await initializeWithoutPassword();
+      setVaultState((prev) => ({
+        ...prev,
+        isInitialized: true,
+        hasPassword: false,
+      }));
     }
+    await saveAccounts(importedList);
     const updated = await getAllAccounts();
     setAccounts(updated);
     touchVaultActivity(settings.autoLockTimeout);
+    showToast(t("success_accounts_imported", { count: importedList.length }));
   };
 
   const handleUpdateSettings = async (updates: Partial<AppSettings>) => {
@@ -176,25 +234,9 @@ export const App: React.FC = () => {
     await refreshVault();
   };
 
-  const resolvedTheme = useMemo(() => {
-    if (settings.theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return settings.theme;
-  }, [settings.theme]);
-
   const handleToggleTheme = async () => {
-    const sequence: Array<'dark' | 'light' | 'oled' | 'violet'> = ['dark', 'light', 'oled', 'violet'];
-    const currentIndex = sequence.indexOf(resolvedTheme as any);
-    const nextTheme = sequence[(currentIndex + 1) % sequence.length];
-    await handleUpdateSettings({ theme: nextTheme });
-  };
-
-  const getThemeLabel = (theme: string) => {
-    if (theme === 'light') return t('theme_light');
-    if (theme === 'oled') return t('theme_oled');
-    if (theme === 'violet') return t('theme_violet');
-    return t('theme_slate');
+    const nextMode = resolvedMode === "dark" ? "light" : "dark";
+    await handleUpdateSettings({ mode: nextMode, theme: nextMode });
   };
 
   const availableGroups = useMemo(() => {
@@ -209,11 +251,12 @@ export const App: React.FC = () => {
     let list = accounts.filter((acc) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch =
-        acc.issuer.toLowerCase().includes(q) || acc.name.toLowerCase().includes(q);
+        acc.issuer.toLowerCase().includes(q) ||
+        acc.name.toLowerCase().includes(q);
       if (!matchesSearch) return false;
 
-      if (selectedGroup === 'Pinned') return Boolean(acc.isPinned);
-      if (selectedGroup !== 'All') return acc.group === selectedGroup;
+      if (selectedGroup === "Pinned") return Boolean(acc.isPinned);
+      if (selectedGroup !== "All") return acc.group === selectedGroup;
       return true;
     });
 
@@ -221,7 +264,7 @@ export const App: React.FC = () => {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
 
-      if (settings.defaultSort === 'recent') {
+      if (settings.defaultSort === "recent") {
         return b.createdAt - a.createdAt;
       }
       return a.issuer.localeCompare(b.issuer);
@@ -232,37 +275,42 @@ export const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-[380px] h-[520px] flex items-center justify-center bg-slate-900 text-slate-400">
-        <Shield size={32} className="animate-pulse text-blue-500" />
+      <div className="w-[380px] h-[520px] flex items-center justify-center app-shell">
+        <Shield size={32} className="animate-pulse app-text-accent" />
       </div>
     );
   }
 
   const wallpaperStyle = getWallpaperStyle(settings.customWallpaper);
-  const hasWallpaper = Boolean(settings.customWallpaper && settings.customWallpaper !== 'none');
-
-  const themeKey = resolvedTheme === 'dark' ? 'slate' : resolvedTheme;
+  const hasWallpaper = Boolean(
+    settings.customWallpaper && settings.customWallpaper !== "none",
+  );
 
   return (
     <div
-      data-theme={themeKey}
-      className="w-[380px] min-h-[520px] max-h-[600px] flex flex-col app-shell overflow-hidden font-sans relative"
+      data-mode={resolvedMode}
+      data-color={activeColor}
+      data-design={activeDesign}
+      data-theme={resolvedMode === "dark" ? "slate" : "light"}
+      className={`w-[380px] min-h-[520px] max-h-[600px] flex flex-col app-shell overflow-hidden font-sans relative mode-${resolvedMode} color-${activeColor} design-${activeDesign}`}
       style={wallpaperStyle}
     >
+      {toastMessage && (
+        <div className="absolute top-14 left-3 right-3 z-50 p-2.5 rounded-xl bg-emerald-600 text-white text-xs font-medium shadow-lg flex items-center gap-2">
+          <CheckCircle2 size={16} className="shrink-0 text-white" />
+          <span className="flex-1">{toastMessage}</span>
+        </div>
+      )}
       {hasWallpaper && (
         <div
           className="absolute inset-0 pointer-events-none z-0"
           style={{
             backgroundColor:
-              resolvedTheme === 'light'
+              resolvedMode === "light"
                 ? `rgba(248, 250, 252, ${(settings.wallpaperDim ?? 70) / 100})`
-                : resolvedTheme === 'oled'
-                ? `rgba(0, 0, 0, ${(settings.wallpaperDim ?? 80) / 100})`
-                : resolvedTheme === 'violet'
-                ? `rgba(11, 8, 22, ${(settings.wallpaperDim ?? 75) / 100})`
-                : `rgba(10, 14, 23, ${(settings.wallpaperDim ?? 70) / 100})`,
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+                : `rgba(0, 0, 0, ${(settings.wallpaperDim ?? 80) / 100})`,
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
           }}
         />
       )}
@@ -272,14 +320,14 @@ export const App: React.FC = () => {
           <img
             src="icons/logo.png"
             alt="SecureAuth Logo"
-            className="w-7 h-7 rounded-lg shadow-md shadow-blue-600/30 object-contain"
+            className="w-7 h-7 rounded-lg shadow-sm object-contain"
           />
           <div>
-            <h1 className="text-xs font-bold text-slate-100 leading-none">
-              {t('app_name')}
+            <h1 className="text-xs font-bold app-text-primary leading-none">
+              {t("app_name")}
             </h1>
-            <span className="text-[10px] text-slate-400">
-              {t('app_subtitle')}
+            <span className="text-[10px] app-text-muted">
+              {t("app_subtitle")}
             </span>
           </div>
         </div>
@@ -288,8 +336,8 @@ export const App: React.FC = () => {
           {vaultState.hasPassword && !vaultState.isLocked && (
             <button
               onClick={handleLockNow}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-colors"
-              title={t('lock_vault')}
+              className="app-btn-icon hover:text-amber-400"
+              title={t("lock_vault")}
             >
               <Lock size={15} />
             </button>
@@ -299,8 +347,8 @@ export const App: React.FC = () => {
             <>
               <button
                 onClick={() => setShowImportModal(true)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-                title={t('export_import_center')}
+                className="app-btn-icon"
+                title={t("export_import_center")}
               >
                 <ArrowUpDown size={15} />
               </button>
@@ -309,8 +357,8 @@ export const App: React.FC = () => {
                   setEditingAccount(null);
                   setShowAddModal(true);
                 }}
-                className="p-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors"
-                title={t('add_account')}
+                className="p-1.5 rounded-lg app-btn-primary shadow-xs transition-colors"
+                title={t("add_account")}
               >
                 <Plus size={15} />
               </button>
@@ -319,25 +367,25 @@ export const App: React.FC = () => {
 
           <button
             onClick={handleToggleTheme}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-            title={t('theme_toggle', { name: getThemeLabel(resolvedTheme) })}
-            aria-label={t('theme_toggle', { name: getThemeLabel(resolvedTheme) })}
+            className="app-btn-icon"
+            title={
+              resolvedMode === "light"
+                ? t("theme_toggle_dark")
+                : t("theme_toggle_light")
+            }
+            aria-label={
+              resolvedMode === "light"
+                ? t("theme_toggle_dark")
+                : t("theme_toggle_light")
+            }
           >
-            {resolvedTheme === 'light' ? (
-              <Sun size={15} />
-            ) : resolvedTheme === 'oled' ? (
-              <span className="text-[11px] font-bold text-emerald-400">OLED</span>
-            ) : resolvedTheme === 'violet' ? (
-              <Palette size={15} className="text-purple-400" />
-            ) : (
-              <Moon size={15} />
-            )}
+            {resolvedMode === "light" ? <Sun size={15} /> : <Moon size={15} />}
           </button>
 
           <button
             onClick={() => setShowSettingsModal(true)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-            title={t('settings_title')}
+            className="app-btn-icon"
+            title={t("settings_title")}
           >
             <Settings size={15} />
           </button>
@@ -367,7 +415,7 @@ export const App: React.FC = () => {
             )}
 
             {filteredAccounts.length > 0 ? (
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-1">
                 {filteredAccounts.map((account) => (
                   <AuthenticatorCard
                     key={account.id}
@@ -385,21 +433,21 @@ export const App: React.FC = () => {
                 ))}
               </div>
             ) : accounts.length > 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-400 text-xs">
-                <p>{t('no_accounts_found')}</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center app-text-muted text-xs">
+                <p>{t("no_accounts_found")}</p>
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-4 text-center my-auto">
                 <img
                   src="icons/logo.png"
                   alt="SecureAuth Logo"
-                  className="w-12 h-12 rounded-2xl shadow-lg shadow-blue-500/20 mb-3 object-contain"
+                  className="w-12 h-12 rounded-2xl shadow-md mb-3 object-contain"
                 />
-                <h2 className="text-sm font-bold text-slate-100 mb-1">
-                  {t('no_accounts_welcome')}
+                <h2 className="text-sm font-bold app-text-primary mb-1">
+                  {t("no_accounts_welcome")}
                 </h2>
-                <p className="text-xs text-slate-400 max-w-[260px] mb-4">
-                  {t('no_accounts_desc')}
+                <p className="text-xs app-text-secondary max-w-[260px] mb-4">
+                  {t("no_accounts_desc")}
                 </p>
 
                 <div className="flex flex-col gap-2 w-full max-w-[260px]">
@@ -408,18 +456,18 @@ export const App: React.FC = () => {
                       setEditingAccount(null);
                       setShowAddModal(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition-colors shadow-lg shadow-blue-600/20"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl app-btn-primary font-medium text-xs transition-colors shadow-sm"
                   >
                     <PlusCircle size={15} />
-                    <span>{t('btn_add_manual')}</span>
+                    <span>{t("btn_add_manual")}</span>
                   </button>
 
                   <button
                     onClick={() => setShowImportModal(true)}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors border border-slate-700/80"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl app-btn-secondary text-xs font-medium transition-colors"
                   >
-                    <QrCode size={15} className="text-blue-400" />
-                    <span>{t('btn_import_migration')}</span>
+                    <QrCode size={15} className="app-text-accent" />
+                    <span>{t("btn_import_migration")}</span>
                   </button>
                 </div>
               </div>
@@ -449,13 +497,16 @@ export const App: React.FC = () => {
         <ImportModal
           existingAccounts={accounts}
           preloadedAccounts={pendingBatchImport || undefined}
-          onImportComplete={(imported) => {
-            handleImportAccounts(imported);
+          autoTriggerPicker={autoTriggerPicker}
+          initialTab={importModalTab}
+          onImportComplete={async (imported) => {
+            await handleImportAccounts(imported);
             setPendingBatchImport(null);
           }}
           onClose={() => {
             setShowImportModal(false);
             setPendingBatchImport(null);
+            setAutoTriggerPicker(false);
           }}
         />
       )}
@@ -481,6 +532,10 @@ export const App: React.FC = () => {
           onUpdateSettings={handleUpdateSettings}
           onLockVault={handleLockNow}
           onWipeData={handleWipeData}
+          onOpenImportExport={(tab) => {
+            setImportModalTab(tab);
+            setShowImportModal(true);
+          }}
           onClose={() => setShowSettingsModal(false)}
         />
       )}

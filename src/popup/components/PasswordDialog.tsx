@@ -63,14 +63,14 @@ export const PasswordDialog: React.FC<PasswordDialogProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center p-4 min-h-[360px] text-center">
-      <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 mb-3">
+      <div className="w-12 h-12 rounded-2xl app-bg-subtle border border-[var(--border-subtle)] flex items-center justify-center app-text-accent mb-3">
         {mode === 'setup' ? <ShieldCheck size={26} /> : <Lock size={26} />}
       </div>
 
-      <h2 className="text-base font-bold text-slate-100 mb-1">
+      <h2 className="text-base font-bold app-text-primary mb-1">
         {mode === 'setup' ? t('setup_password_title') : t('vault_locked')}
       </h2>
-      <p className="text-xs text-slate-400 max-w-xs mb-4">
+      <p className="text-xs app-text-secondary max-w-xs mb-4">
         {mode === 'setup' ? t('setup_password_desc') : t('enter_vault_password')}
       </p>
 
@@ -139,7 +139,7 @@ export const PasswordDialog: React.FC<PasswordDialogProps> = ({
           <button
             type="button"
             onClick={onSkipSetup}
-            className="w-full py-1.5 px-3 rounded-lg text-slate-400 hover:text-slate-200 text-[11px] text-center"
+            className="w-full py-1.5 px-3 rounded-lg app-text-muted hover:app-text-primary text-[11px] text-center"
           >
             {t('skip_password_btn')}
           </button>

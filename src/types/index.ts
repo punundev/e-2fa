@@ -18,8 +18,15 @@ export interface AuthenticatorAccount {
   updatedAt: number;
 }
 
+export type ThemeMode = 'system' | 'dark' | 'light';
+export type ThemeColor = 'blue' | 'green' | 'violet' | 'yellow' | 'red' | 'orange' | 'cyan' | 'rose';
+export type ThemeDesign = 'rounded' | 'sharp' | 'compact' | 'glass';
+
 export interface AppSettings {
   theme: 'system' | 'light' | 'dark' | 'oled' | 'violet';
+  mode?: ThemeMode;
+  accentColor?: ThemeColor;
+  designStyle?: ThemeDesign;
   customWallpaper?: string;
   wallpaperDim?: number;
   autoLockTimeout: number;

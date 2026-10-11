@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { X, Eye, EyeOff, QrCode, Copy, Check } from 'lucide-react';
-import { AuthenticatorAccount } from '../../types';
-import { formatOtpUri } from '../../lib/otp-uri';
-import { generateQrDataUrl } from '../../lib/qr-code';
-import { t } from '../../lib/i18n';
+import React, { useState, useEffect } from "react";
+import { X, Eye, EyeOff, QrCode, Copy, Check } from "lucide-react";
+import { AuthenticatorAccount } from "../../types";
+import { formatOtpUri } from "../../lib/otp-uri";
+import { generateQrDataUrl } from "../../lib/qr-code";
+import { t } from "../../lib/i18n";
 
 interface AccountDetailsModalProps {
   account: AuthenticatorAccount;
@@ -15,7 +15,7 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
   onClose,
 }) => {
   const [showSecret, setShowSecret] = useState(false);
-  const [qrUrl, setQrUrl] = useState<string>('');
+  const [qrUrl, setQrUrl] = useState<string>("");
   const [copiedSecret, setCopiedSecret] = useState(false);
   const [copiedUri, setCopiedUri] = useState(false);
 
@@ -40,48 +40,54 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-2xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-2xl flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-2">
-            <QrCode size={18} className="text-blue-400" />
-            <h3 className="text-sm font-semibold text-slate-100">
-              {t('account_details_title')}
+            <QrCode size={18} className="app-text-accent" />
+            <h3 className="text-sm font-semibold app-text-primary">
+              {t("account_details_title")}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="app-btn-icon"
           >
             <X size={16} />
           </button>
         </div>
 
         <div className="text-center">
-          <h4 className="text-base font-bold text-slate-100">{account.issuer}</h4>
-          <p className="text-xs text-slate-400">{account.name}</p>
+          <h4 className="text-base font-bold app-text-primary">
+            {account.issuer}
+          </h4>
+          <p className="text-xs app-text-secondary">{account.name}</p>
         </div>
 
         {qrUrl && (
-          <div className="flex justify-center p-3 bg-white rounded-xl mx-auto w-44 h-44 shadow-inner">
-            <img src={qrUrl} alt="Provisioning QR Code" className="w-full h-full" />
+          <div className="flex justify-center p-2 bg-white rounded-xl mx-auto w-44 h-44 shadow-inner">
+            <img
+              src={qrUrl}
+              alt="Provisioning QR Code"
+              className="w-full h-full"
+            />
           </div>
         )}
 
         <div className="flex flex-col gap-2 text-xs">
-          <div className="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700/60">
+          <div className="app-bg-subtle p-2.5 rounded-lg border border-[var(--border-subtle)]">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-slate-400">{t('secret_key')}</span>
+              <span className="app-text-muted">{t("secret_key")}</span>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setShowSecret(!showSecret)}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="app-text-muted hover:app-text-primary"
                 >
                   {showSecret ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
                 <button
                   onClick={handleCopySecret}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="app-text-muted hover:app-text-primary"
                   title="Copy secret"
                 >
                   {copiedSecret ? (
@@ -92,34 +98,44 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
                 </button>
               </div>
             </div>
-            <p className="font-mono text-xs text-slate-200 break-all select-all">
-              {showSecret ? account.secret : '••••••••••••••••••••••••'}
+            <p className="font-mono text-xs app-text-primary break-all select-all font-medium">
+              {showSecret ? account.secret : "••••••••••••••••••••••••"}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 block text-[10px]">{t('otp_type')}</span>
-              <span className="font-semibold text-slate-200 uppercase">
+            <div className="app-bg-subtle p-2 rounded-lg border border-[var(--border-subtle)]">
+              <span className="app-text-muted block text-[10px]">
+                {t("otp_type")}
+              </span>
+              <span className="font-semibold app-text-primary uppercase">
                 {account.type}
               </span>
             </div>
-            <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 block text-[10px]">{t('algorithm')}</span>
-              <span className="font-semibold text-slate-200">
+            <div className="app-bg-subtle p-2 rounded-lg border border-[var(--border-subtle)]">
+              <span className="app-text-muted block text-[10px]">
+                {t("algorithm")}
+              </span>
+              <span className="font-semibold app-text-primary">
                 {account.algorithm}
               </span>
             </div>
-            <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 block text-[10px]">{t('digits')}</span>
-              <span className="font-semibold text-slate-200">{account.digits}</span>
-            </div>
-            <div className="bg-slate-800/80 p-2 rounded-lg border border-slate-700/60">
-              <span className="text-slate-400 block text-[10px]">
-                {account.type === 'totp' ? t('period') : t('counter')}
+            <div className="app-bg-subtle p-2 rounded-lg border border-[var(--border-subtle)]">
+              <span className="app-text-muted block text-[10px]">
+                {t("digits")}
               </span>
-              <span className="font-semibold text-slate-200">
-                {account.type === 'totp' ? `${account.period}s` : `#${account.counter}`}
+              <span className="font-semibold app-text-primary">
+                {account.digits}
+              </span>
+            </div>
+            <div className="app-bg-subtle p-2 rounded-lg border border-[var(--border-subtle)]">
+              <span className="app-text-muted block text-[10px]">
+                {account.type === "totp" ? t("period") : t("counter")}
+              </span>
+              <span className="font-semibold app-text-primary">
+                {account.type === "totp"
+                  ? `${account.period}s`
+                  : `#${account.counter}`}
               </span>
             </div>
           </div>
@@ -128,20 +144,20 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
         <div className="flex gap-2 pt-1">
           <button
             onClick={handleCopyUri}
-            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg app-btn-secondary text-xs font-medium transition-colors"
           >
             {copiedUri ? (
               <Check size={14} className="text-emerald-400" />
             ) : (
               <Copy size={14} />
             )}
-            <span>{t('menu_copy_uri')}</span>
+            <span>{t("menu_copy_uri")}</span>
           </button>
           <button
             onClick={onClose}
-            className="py-1.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition-colors"
+            className="py-1.5 px-4 rounded-lg app-btn-primary text-xs font-medium transition-colors"
           >
-            {t('close')}
+            {t("close")}
           </button>
         </div>
       </div>

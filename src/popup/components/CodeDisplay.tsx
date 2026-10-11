@@ -48,7 +48,7 @@ export const CodeDisplay: React.FC<CodeDisplayProps> = ({
       <span className="font-mono text-xl font-bold tracking-wider">
         {formatted}
       </span>
-      <div className="flex items-center ml-2 text-slate-400 group-hover:text-slate-200">
+      <div className="flex items-center ml-2 app-text-muted group-hover:app-text-primary">
         {copied ? (
           <span className="flex items-center text-xs font-sans text-emerald-400 gap-1">
             <Check size={14} />

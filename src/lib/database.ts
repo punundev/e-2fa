@@ -12,7 +12,10 @@ const DB_VERSION = 1;
 const CANARY_PLAINTEXT = 'SECUREAUTH_VAULT_CANARY_V1';
 
 const DEFAULT_SETTINGS: AppSettings = {
-  theme: 'system',
+  theme: 'dark',
+  mode: 'dark',
+  accentColor: 'blue',
+  designStyle: 'rounded',
   autoLockTimeout: 5,
   clipboardClearDelay: 30,
   confirmSecretReveal: true,
@@ -247,6 +250,25 @@ export async function saveAccount(account: AuthenticatorAccount): Promise<void> 
     const req = store.put(record);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
+  });
+}
+
+export async function saveAccounts(accounts: AuthenticatorAccount[]): Promise<void> {
+  const db = await openDb();
+  const records: StoredAccountRecord[] = [];
+  for (const acc of accounts) {
+    const record = await prepareAccountForStorage(acc);
+    records.push(record);
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction('accounts', 'readwrite');
+    const store = tx.objectStore('accounts');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    for (const record of records) {
+      store.put(record);
+    }
   });
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   X,
   Upload,
@@ -9,15 +9,21 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle2,
-} from 'lucide-react';
-import { AuthenticatorAccount, HashAlgorithm, OtpType } from '../../types';
-import { cleanBase32, isValidBase32 } from '../../lib/validation';
-import { parseOtpUri } from '../../lib/otp-uri';
-import { isGoogleMigrationUri, parseGoogleMigrationUri } from '../../lib/google-migration';
-import { decodeQrFromImageFile, decodeQrFromImageData } from '../../lib/qr-code';
-import { generateTotp } from '../../lib/totp';
-import { checkDuplicate } from '../../lib/import-export';
-import { t } from '../../lib/i18n';
+} from "lucide-react";
+import { AuthenticatorAccount, HashAlgorithm, OtpType } from "../../types";
+import { cleanBase32, isValidBase32 } from "../../lib/validation";
+import { parseOtpUri } from "../../lib/otp-uri";
+import {
+  isGoogleMigrationUri,
+  parseGoogleMigrationUri,
+} from "../../lib/google-migration";
+import {
+  decodeQrFromImageFile,
+  decodeQrFromImageData,
+} from "../../lib/qr-code";
+import { generateTotp } from "../../lib/totp";
+import { checkDuplicate, parseImportString } from "../../lib/import-export";
+import { t } from "../../lib/i18n";
 
 interface AddAccountModalProps {
   existingAccounts: AuthenticatorAccount[];
@@ -34,20 +40,22 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
   onBatchImport,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'manual' | 'qr' | 'uri'>('manual');
-  const [issuer, setIssuer] = useState(initialAccount?.issuer || '');
-  const [name, setName] = useState(initialAccount?.name || '');
-  const [secret, setSecret] = useState(initialAccount?.secret || '');
-  const [type, setType] = useState<OtpType>(initialAccount?.type || 'totp');
-  const [algorithm, setAlgorithm] = useState<HashAlgorithm>(initialAccount?.algorithm || 'SHA-1');
+  const [activeTab, setActiveTab] = useState<"manual" | "qr" | "uri">("manual");
+  const [issuer, setIssuer] = useState(initialAccount?.issuer || "");
+  const [name, setName] = useState(initialAccount?.name || "");
+  const [secret, setSecret] = useState(initialAccount?.secret || "");
+  const [type, setType] = useState<OtpType>(initialAccount?.type || "totp");
+  const [algorithm, setAlgorithm] = useState<HashAlgorithm>(
+    initialAccount?.algorithm || "SHA-1",
+  );
   const [digits, setDigits] = useState<number>(initialAccount?.digits || 6);
   const [period, setPeriod] = useState<number>(initialAccount?.period || 30);
   const [counter, setCounter] = useState<number>(initialAccount?.counter || 0);
-  const [group, setGroup] = useState(initialAccount?.group || '');
+  const [group, setGroup] = useState(initialAccount?.group || "");
 
   const [showSecret, setShowSecret] = useState(false);
-  const [previewCode, setPreviewCode] = useState<string>('');
-  const [uriInput, setUriInput] = useState('');
+  const [previewCode, setPreviewCode] = useState<string>("");
+  const [uriInput, setUriInput] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
 
@@ -61,13 +69,17 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       const cleaned = cleanBase32(secret);
       if (isValidBase32(cleaned)) {
         try {
-          const code = await generateTotp(cleaned, { period, digits, algorithm });
+          const code = await generateTotp(cleaned, {
+            period,
+            digits,
+            algorithm,
+          });
           if (active) setPreviewCode(code);
         } catch {
-          if (active) setPreviewCode('');
+          if (active) setPreviewCode("");
         }
       } else {
-        if (active) setPreviewCode('');
+        if (active) setPreviewCode("");
       }
     };
     updatePreview();
@@ -94,7 +106,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
     try {
       setErrorMsg(null);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: "environment" },
       });
       mediaStreamRef.current = stream;
       if (videoRef.current) {
@@ -104,7 +116,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setCameraActive(true);
       requestAnimationFrame(scanCameraFrame);
     } catch {
-      setErrorMsg(t('camera_permission_denied'));
+      setErrorMsg(t("camera_permission_denied"));
       stopCamera();
     }
   };
@@ -113,10 +125,10 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
     if (!mediaStreamRef.current || !videoRef.current) return;
     const video = videoRef.current;
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -133,11 +145,32 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
     }
   };
 
-  const handleDetectedUri = (detectedText: string) => {
+  const handleDetectedUri = async (detectedText: string) => {
     try {
       setErrorMsg(null);
-      if (isGoogleMigrationUri(detectedText)) {
-        const batch = parseGoogleMigrationUri(detectedText);
+      const trimmed = detectedText.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        const accounts = await parseImportString(trimmed);
+        if (accounts.length === 1) {
+          const acc = accounts[0];
+          setIssuer(acc.issuer);
+          setName(acc.name);
+          setSecret(acc.secret);
+          setType(acc.type);
+          setAlgorithm(acc.algorithm);
+          setDigits(acc.digits);
+          setPeriod(acc.period);
+          setCounter(acc.counter);
+          setActiveTab("manual");
+        } else if (accounts.length > 1 && onBatchImport) {
+          onBatchImport(accounts);
+          onClose();
+        }
+        return;
+      }
+
+      if (isGoogleMigrationUri(trimmed)) {
+        const batch = parseGoogleMigrationUri(trimmed);
         if (batch.accounts.length === 1) {
           const acc = batch.accounts[0];
           setIssuer(acc.issuer);
@@ -148,7 +181,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
           setDigits(acc.digits);
           setPeriod(acc.period);
           setCounter(acc.counter);
-          setActiveTab('manual');
+          setActiveTab("manual");
         } else if (batch.accounts.length > 1 && onBatchImport) {
           onBatchImport(batch.accounts);
           onClose();
@@ -156,8 +189,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
         return;
       }
 
-      if (detectedText.toLowerCase().startsWith('otpauth://')) {
-        const parsed = parseOtpUri(detectedText);
+      if (trimmed.toLowerCase().startsWith("otpauth://")) {
+        const parsed = parseOtpUri(trimmed);
         setIssuer(parsed.issuer);
         setName(parsed.name);
         setSecret(parsed.secret);
@@ -166,13 +199,13 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
         setDigits(parsed.digits);
         setPeriod(parsed.period);
         setCounter(parsed.counter);
-        setActiveTab('manual');
+        setActiveTab("manual");
         return;
       }
 
-      setErrorMsg(t('qr_decode_failed'));
+      setErrorMsg(t("qr_decode_failed"));
     } catch (err: any) {
-      setErrorMsg(err.message || t('qr_decode_failed'));
+      setErrorMsg(err.message || t("qr_decode_failed"));
     }
   };
 
@@ -183,12 +216,12 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setErrorMsg(null);
       const text = await decodeQrFromImageFile(file);
       if (!text) {
-        setErrorMsg(t('qr_decode_failed'));
+        setErrorMsg(t("qr_decode_failed"));
         return;
       }
       handleDetectedUri(text);
     } catch {
-      setErrorMsg(t('qr_decode_failed'));
+      setErrorMsg(t("qr_decode_failed"));
     }
   };
 
@@ -202,15 +235,15 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
     const cleanedSecret = cleanBase32(secret);
 
     if (!issuer.trim()) {
-      setErrorMsg(t('error_empty_secret'));
+      setErrorMsg(t("error_empty_secret"));
       return;
     }
     if (!cleanedSecret) {
-      setErrorMsg(t('error_empty_secret'));
+      setErrorMsg(t("error_empty_secret"));
       return;
     }
     if (!isValidBase32(cleanedSecret)) {
-      setErrorMsg(t('error_invalid_secret'));
+      setErrorMsg(t("error_invalid_secret"));
       return;
     }
 
@@ -235,7 +268,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
   };
 
   const candidateAccount: AuthenticatorAccount = {
-    id: initialAccount?.id || 'temp',
+    id: initialAccount?.id || "temp",
     issuer: issuer.trim(),
     name: name.trim() || issuer.trim(),
     secret: cleanBase32(secret),
@@ -250,58 +283,58 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
   const duplicateCheck = checkDuplicate(
     candidateAccount,
-    existingAccounts.filter((a) => a.id !== initialAccount?.id)
+    existingAccounts.filter((a) => a.id !== initialAccount?.id),
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-2xl flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-          <h3 className="text-sm font-semibold text-slate-100">
-            {initialAccount ? t('menu_edit') : t('add_account')}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-2xl flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+          <h3 className="text-sm font-semibold app-text-primary">
+            {initialAccount ? t("menu_edit") : t("add_account")}
           </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="app-btn-icon"
           >
             <X size={16} />
           </button>
         </div>
 
         {!initialAccount && (
-          <div className="flex rounded-lg bg-slate-800/80 p-0.5 text-xs">
+          <div className="flex rounded-lg app-bg-subtle border border-[var(--border-subtle)] p-0.5 text-xs">
             <button
-              onClick={() => setActiveTab('manual')}
+              onClick={() => setActiveTab("manual")}
               className={`flex-1 py-1.5 rounded-md flex items-center justify-center gap-1.5 transition-colors ${
-                activeTab === 'manual'
-                  ? 'bg-blue-600 text-white font-medium'
-                  : 'text-slate-400 hover:text-slate-200'
+                activeTab === "manual"
+                  ? "app-btn-primary font-medium"
+                  : "app-text-muted hover:app-text-primary"
               }`}
             >
               <Edit3 size={13} />
-              <span>{t('tab_manual')}</span>
+              <span>{t("tab_manual")}</span>
             </button>
             <button
-              onClick={() => setActiveTab('qr')}
+              onClick={() => setActiveTab("qr")}
               className={`flex-1 py-1.5 rounded-md flex items-center justify-center gap-1.5 transition-colors ${
-                activeTab === 'qr'
-                  ? 'bg-blue-600 text-white font-medium'
-                  : 'text-slate-400 hover:text-slate-200'
+                activeTab === "qr"
+                  ? "app-btn-primary font-medium"
+                  : "app-text-muted hover:app-text-primary"
               }`}
             >
               <Camera size={13} />
-              <span>{t('tab_scan_qr')}</span>
+              <span>{t("tab_scan_qr")}</span>
             </button>
             <button
-              onClick={() => setActiveTab('uri')}
+              onClick={() => setActiveTab("uri")}
               className={`flex-1 py-1.5 rounded-md flex items-center justify-center gap-1.5 transition-colors ${
-                activeTab === 'uri'
-                  ? 'bg-blue-600 text-white font-medium'
-                  : 'text-slate-400 hover:text-slate-200'
+                activeTab === "uri"
+                  ? "app-btn-primary font-medium"
+                  : "app-text-muted hover:app-text-primary"
               }`}
             >
               <Link size={13} />
-              <span>{t('tab_paste_uri')}</span>
+              <span>{t("tab_paste_uri")}</span>
             </button>
           </div>
         )}
@@ -313,8 +346,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
           </div>
         )}
 
-        {activeTab === 'qr' && (
-          <div className="flex flex-col gap-3 py-2">
+        {activeTab === "qr" && (
+          <div className="flex flex-col gap-2 py-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -324,118 +357,123 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center p-5 rounded-xl border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-800/40 hover:bg-slate-800/70 transition-colors cursor-pointer text-center"
+              className="flex flex-col items-center justify-center p-5 rounded-xl border-2 border-dashed border-[var(--border-subtle)] hover:border-[var(--accent)] bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle-hover)] transition-colors cursor-pointer text-center"
             >
-              <Upload size={24} className="text-blue-400 mb-2" />
-              <span className="text-xs font-medium text-slate-200">
-                {t('upload_qr_image')}
+              <Upload size={24} className="app-text-accent mb-2" />
+              <span className="text-xs font-medium app-text-primary">
+                {t("upload_qr_image")}
               </span>
             </button>
 
             <div className="flex flex-col items-center">
               {cameraActive ? (
                 <div className="flex flex-col items-center w-full gap-2">
-                  <div className="relative w-full aspect-square max-w-[200px] overflow-hidden rounded-xl border border-blue-500/50 bg-black">
-                    <video ref={videoRef} className="w-full h-full object-cover" />
+                  <div className="relative w-full aspect-square max-w-[200px] overflow-hidden rounded-xl border border-[var(--accent)] bg-black">
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <button
                     onClick={stopCamera}
                     className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-medium"
                   >
-                    {t('camera_stop')}
+                    {t("camera_stop")}
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={startCamera}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg app-btn-secondary text-xs transition-colors"
                 >
                   <Camera size={14} />
-                  <span>{t('camera_start')}</span>
+                  <span>{t("camera_start")}</span>
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {activeTab === 'uri' && (
+        {activeTab === "uri" && (
           <div className="flex flex-col gap-2 py-2">
-            <label className="text-xs text-slate-300 font-medium">
-              {t('uri_input_label')}
+            <label className="text-xs app-text-secondary font-medium">
+              {t("uri_input_label")}
             </label>
             <textarea
               rows={3}
               value={uriInput}
               onChange={(e) => setUriInput(e.target.value)}
-              placeholder={t('uri_placeholder')}
-              className="w-full p-2 text-xs rounded-lg bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-blue-500"
+              placeholder={t("uri_placeholder")}
+              className="w-full p-2 text-xs rounded-lg app-input font-mono"
             />
             <button
               onClick={handleParseUriInput}
-              className="self-end px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white transition-colors"
+              className="self-end px-3 py-1.5 rounded-lg app-btn-primary text-xs font-medium transition-colors"
             >
               Parse URI
             </button>
           </div>
         )}
 
-        {activeTab === 'manual' && (
+        {activeTab === "manual" && (
           <div className="flex flex-col gap-2.5 text-xs">
             <div>
-              <label className="text-slate-300 font-medium mb-1 block">
-                {t('account_issuer')} *
+              <label className="app-text-secondary font-medium mb-1 block">
+                {t("account_issuer")} *
               </label>
               <input
                 type="text"
                 value={issuer}
                 onChange={(e) => setIssuer(e.target.value)}
                 placeholder="Google, GitHub, AWS..."
-                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 rounded-lg app-input"
               />
             </div>
 
             <div>
-              <label className="text-slate-300 font-medium mb-1 block">
-                {t('account_name')} *
+              <label className="app-text-secondary font-medium mb-1 block">
+                {t("account_name")} *
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="alice@example.com"
-                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 rounded-lg app-input"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-slate-300 font-medium">{t('secret_key')} *</label>
+                <label className="app-text-secondary font-medium">
+                  {t("secret_key")} *
+                </label>
                 <button
                   type="button"
                   onClick={() => setShowSecret(!showSecret)}
-                  className="text-slate-400 hover:text-slate-200"
+                  className="app-text-muted hover:app-text-primary"
                 >
                   {showSecret ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
               <input
-                type={showSecret ? 'text' : 'password'}
+                type={showSecret ? "text" : "password"}
                 value={secret}
                 onChange={(e) => setSecret(e.target.value)}
                 placeholder="JBSWY3DPEHPK3PXP"
-                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 font-mono uppercase focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 rounded-lg app-input font-mono uppercase"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-slate-300 font-medium mb-1 block">
-                  {t('otp_type')}
+                <label className="app-text-secondary font-medium mb-1 block">
+                  {t("otp_type")}
                 </label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as OtpType)}
-                  className="w-full px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1.5 rounded-lg app-input"
                 >
                   <option value="totp">TOTP (Time-based)</option>
                   <option value="hotp">HOTP (Counter-based)</option>
@@ -443,13 +481,15 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-300 font-medium mb-1 block">
-                  {t('algorithm')}
+                <label className="app-text-secondary font-medium mb-1 block">
+                  {t("algorithm")}
                 </label>
                 <select
                   value={algorithm}
-                  onChange={(e) => setAlgorithm(e.target.value as HashAlgorithm)}
-                  className="w-full px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-blue-500"
+                  onChange={(e) =>
+                    setAlgorithm(e.target.value as HashAlgorithm)
+                  }
+                  className="w-full px-2 py-1.5 rounded-lg app-input"
                 >
                   <option value="SHA-1">SHA-1</option>
                   <option value="SHA-256">SHA-256</option>
@@ -460,13 +500,13 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-slate-300 font-medium mb-1 block">
-                  {t('digits')}
+                <label className="app-text-secondary font-medium mb-1 block">
+                  {t("digits")}
                 </label>
                 <select
                   value={digits}
                   onChange={(e) => setDigits(Number(e.target.value))}
-                  className="w-full px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1.5 rounded-lg app-input"
                 >
                   <option value={6}>6 digits</option>
                   <option value={8}>8 digits</option>
@@ -474,17 +514,17 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-300 font-medium mb-1 block">
-                  {type === 'totp' ? t('period') : t('counter')}
+                <label className="app-text-secondary font-medium mb-1 block">
+                  {type === "totp" ? t("period") : t("counter")}
                 </label>
-                {type === 'totp' ? (
+                {type === "totp" ? (
                   <input
                     type="number"
                     min={5}
                     max={300}
                     value={period}
                     onChange={(e) => setPeriod(Number(e.target.value))}
-                    className="w-full px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-blue-500"
+                    className="w-full px-2 py-1.5 rounded-lg app-input"
                   />
                 ) : (
                   <input
@@ -492,29 +532,31 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
                     min={0}
                     value={counter}
                     onChange={(e) => setCounter(Number(e.target.value))}
-                    className="w-full px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-blue-500"
+                    className="w-full px-2 py-1.5 rounded-lg app-input"
                   />
                 )}
               </div>
             </div>
 
             <div>
-              <label className="text-slate-300 font-medium mb-1 block">
-                {t('group_category')} ({t('optional')})
+              <label className="app-text-secondary font-medium mb-1 block">
+                {t("group_category")} ({t("optional")})
               </label>
               <input
                 type="text"
                 value={group}
                 onChange={(e) => setGroup(e.target.value)}
                 placeholder="Work, Personal, Finance..."
-                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 rounded-lg app-input"
               />
             </div>
 
             {previewCode && (
-              <div className="p-2 rounded-lg bg-slate-800/90 border border-slate-700/80 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">Code Preview:</span>
-                <span className="font-mono text-sm font-bold text-blue-400 tracking-wider">
+              <div className="p-2 rounded-lg app-bg-subtle border border-[var(--border-subtle)] flex items-center justify-between">
+                <span className="text-[11px] app-text-muted">
+                  Code Preview:
+                </span>
+                <span className="font-mono text-sm font-bold app-text-accent tracking-wider">
                   {previewCode}
                 </span>
               </div>
@@ -524,28 +566,28 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
               <div className="p-2 rounded-lg bg-amber-950/60 border border-amber-800 text-[11px] text-amber-200 flex items-center gap-1.5">
                 <AlertCircle size={13} className="shrink-0 text-amber-400" />
                 <span>
-                  {duplicateCheck.duplicateType === 'exact'
-                    ? t('duplicate_exact')
-                    : t('duplicate_conflict')}
+                  {duplicateCheck.duplicateType === "exact"
+                    ? t("duplicate_exact")
+                    : t("duplicate_conflict")}
                 </span>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[var(--border-subtle)]">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                className="px-3 py-1.5 rounded-lg app-btn-secondary"
               >
-                {t('cancel')}
+                {t("cancel")}
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium flex items-center gap-1"
+                className="px-4 py-1.5 rounded-lg app-btn-primary font-medium flex items-center gap-1"
               >
                 <CheckCircle2 size={14} />
-                <span>{t('save')}</span>
+                <span>{t("save")}</span>
               </button>
             </div>
           </div>

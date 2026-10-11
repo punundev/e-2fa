@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   MoreVertical,
   Star,
@@ -8,18 +8,18 @@ import {
   Link,
   RefreshCw,
   AlertTriangle,
-} from 'lucide-react';
-import { AuthenticatorAccount } from '../../types';
-import { generateTotp, getTotpRemainingSeconds } from '../../lib/totp';
-import { generateHotp } from '../../lib/hotp';
-import { formatOtpUri } from '../../lib/otp-uri';
-import { CountdownRing } from './CountdownRing';
-import { CodeDisplay } from './CodeDisplay';
-import { t } from '../../lib/i18n';
+} from "lucide-react";
+import { AuthenticatorAccount } from "../../types";
+import { generateTotp, getTotpRemainingSeconds } from "../../lib/totp";
+import { generateHotp } from "../../lib/hotp";
+import { formatOtpUri } from "../../lib/otp-uri";
+import { CountdownRing } from "./CountdownRing";
+import { CodeDisplay } from "./CodeDisplay";
+import { t } from "../../lib/i18n";
 
 interface AuthenticatorCardProps {
   account: AuthenticatorAccount;
-  grouping?: 'grouped' | 'plain';
+  grouping?: "grouped" | "plain";
   onTogglePin: (account: AuthenticatorAccount) => void;
   onEdit: (account: AuthenticatorAccount) => void;
   onViewDetails: (account: AuthenticatorAccount) => void;
@@ -29,14 +29,14 @@ interface AuthenticatorCardProps {
 
 export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
   account,
-  grouping = 'grouped',
+  grouping = "grouped",
   onTogglePin,
   onEdit,
   onViewDetails,
   onDelete,
   onIncrementHotp,
 }) => {
-  const [code, setCode] = useState<string>('------');
+  const [code, setCode] = useState<string>("------");
   const [remaining, setRemaining] = useState<number>(30);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -46,7 +46,7 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
   useEffect(() => {
     let active = true;
 
-    if (account.type === 'totp') {
+    if (account.type === "totp") {
       const updateCode = async () => {
         try {
           const generated = await generateTotp(account.secret, {
@@ -56,14 +56,14 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
           });
           if (active) setCode(generated);
         } catch {
-          if (active) setCode('ERROR');
+          if (active) setCode("ERROR");
         }
       };
 
       const tick = () => {
         const rem = getTotpRemainingSeconds(Date.now(), account.period);
         setRemaining(rem);
-        if (rem === account.period || code === '------') {
+        if (rem === account.period || code === "------") {
           updateCode();
         }
       };
@@ -79,13 +79,17 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
       // HOTP
       const updateHotp = async () => {
         try {
-          const generated = await generateHotp(account.secret, account.counter, {
-            digits: account.digits,
-            algorithm: account.algorithm,
-          });
+          const generated = await generateHotp(
+            account.secret,
+            account.counter,
+            {
+              digits: account.digits,
+              algorithm: account.algorithm,
+            },
+          );
           if (active) setCode(generated);
         } catch {
-          if (active) setCode('ERROR');
+          if (active) setCode("ERROR");
         }
       };
       updateHotp();
@@ -122,7 +126,7 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
   };
 
   return (
-    <div className="relative p-3 rounded-xl app-card">
+    <div className="relative p-2 rounded-xl app-card">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
@@ -135,24 +139,28 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
               </span>
             )}
           </div>
-          <p className="text-xs app-text-secondary truncate mt-0.5">{account.name}</p>
+          <p className="text-xs app-text-secondary truncate mt-0.5">
+            {account.name}
+          </p>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => onTogglePin(account)}
-            className={`p-1 rounded hover:bg-slate-700 transition-colors ${
-              account.isPinned ? 'text-amber-400' : 'text-slate-400 hover:text-slate-200'
+            className={`p-1 rounded transition-colors ${
+              account.isPinned
+                ? "text-amber-400 hover:bg-[var(--bg-subtle)]"
+                : "app-text-muted hover:app-text-primary hover:bg-[var(--bg-subtle)]"
             }`}
-            title={account.isPinned ? t('menu_unpin') : t('menu_pin')}
+            title={account.isPinned ? t("menu_unpin") : t("menu_pin")}
           >
-            <Star size={15} fill={account.isPinned ? 'currentColor' : 'none'} />
+            <Star size={15} fill={account.isPinned ? "currentColor" : "none"} />
           </button>
 
           <div className="relative">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-colors"
+              className="p-1 rounded app-text-muted hover:app-text-primary hover:bg-[var(--bg-subtle)] transition-colors"
             >
               <MoreVertical size={16} />
             </button>
@@ -163,44 +171,44 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
                   className="fixed inset-0 z-10"
                   onClick={() => setMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-7 z-20 w-44 rounded-lg app-modal py-1 text-xs border shadow-xl">
+                <div className="absolute right-0 top-7 z-20 w-44 rounded-lg app-modal py-1 text-xs shadow-xl">
                   <button
                     onClick={() => {
                       setMenuOpen(false);
                       onViewDetails(account);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-black/5 dark:hover:bg-white/10 text-left transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-subtle-hover)] text-left transition-colors"
                   >
-                    <Info size={14} className="text-blue-400" />
-                    <span>{t('menu_view_details')}</span>
+                    <Info size={14} className="app-text-accent" />
+                    <span>{t("menu_view_details")}</span>
                   </button>
                   <button
                     onClick={() => {
                       setMenuOpen(false);
                       onEdit(account);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-slate-800 text-left"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-subtle-hover)] text-left"
                   >
                     <Edit2 size={14} className="text-emerald-400" />
-                    <span>{t('menu_edit')}</span>
+                    <span>{t("menu_edit")}</span>
                   </button>
                   <button
                     onClick={handleCopyUri}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-slate-800 text-left"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-subtle-hover)] text-left"
                   >
                     <Link size={14} className="text-amber-400" />
-                    <span>{t('menu_copy_uri')}</span>
+                    <span>{t("menu_copy_uri")}</span>
                   </button>
-                  <div className="my-1 border-t border-slate-800" />
+                  <div className="my-1 border-t border-[var(--border-subtle)]" />
                   <button
                     onClick={() => {
                       setMenuOpen(false);
                       setShowDeleteConfirm(true);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-red-950/40 text-red-400 text-left"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-red-500/10 text-red-400 text-left"
                   >
                     <Trash2 size={14} />
-                    <span>{t('menu_delete')}</span>
+                    <span>{t("menu_delete")}</span>
                   </button>
                 </div>
               </>
@@ -214,16 +222,19 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
           <CodeDisplay code={code} grouping={grouping} />
         </div>
 
-        {account.type === 'totp' ? (
+        {account.type === "totp" ? (
           <CountdownRing remaining={remaining} period={account.period} />
         ) : (
           <button
             onClick={handleNextHotp}
             disabled={isGeneratingHotp}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg app-btn-primary text-xs font-medium transition-transform active:scale-95"
-            title={t('hotp_next')}
+            title={t("hotp_next")}
           >
-            <RefreshCw size={13} className={isGeneratingHotp ? 'animate-spin' : ''} />
+            <RefreshCw
+              size={13}
+              className={isGeneratingHotp ? "animate-spin" : ""}
+            />
             <span>#{account.counter}</span>
           </button>
         )}
@@ -232,31 +243,31 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
       {uriCopiedWarning && (
         <div className="mt-2 p-1.5 rounded bg-amber-950/60 border border-amber-800/80 text-[11px] text-amber-200 flex items-center gap-1.5">
           <AlertTriangle size={13} className="shrink-0 text-amber-400" />
-          <span>{t('copied_uri')}</span>
+          <span>{t("copied_uri")}</span>
         </div>
       )}
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="w-full max-w-xs rounded-xl app-modal p-4 shadow-2xl">
-            <h4 className="text-sm font-semibold text-slate-100 mb-1">
-              {t('delete_confirm_title')}
+            <h4 className="text-sm font-semibold app-text-primary mb-1">
+              {t("delete_confirm_title")}
             </h4>
-            <p className="text-xs text-slate-300 mb-2">
-              {t('delete_confirm_desc', {
+            <p className="text-xs app-text-secondary mb-2">
+              {t("delete_confirm_desc", {
                 issuer: account.issuer,
                 name: account.name,
               })}
             </p>
             <p className="text-[11px] text-amber-400 mb-4 bg-amber-950/40 p-2 rounded border border-amber-900/50">
-              {t('delete_confirm_warning')}
+              {t("delete_confirm_warning")}
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-1.5 text-xs rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700"
+                className="px-3 py-1.5 text-xs rounded-lg app-btn-secondary"
               >
-                {t('cancel')}
+                {t("cancel")}
               </button>
               <button
                 onClick={() => {
@@ -265,7 +276,7 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
                 }}
                 className="px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white font-medium hover:bg-red-500"
               >
-                {t('confirm_delete')}
+                {t("confirm_delete")}
               </button>
             </div>
           </div>

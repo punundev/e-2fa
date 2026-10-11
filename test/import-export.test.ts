@@ -67,4 +67,18 @@ describe('Import Export JSON Parser', () => {
       expect(code).toMatch(/^[0-9]{6}$/);
     }
   });
+
+  it('parses real 43 accounts backup JSON file when present', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const filePath = path.resolve(__dirname, '../authenticator-backup-2026-10-11.json');
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      const accounts = await parseImportString(content);
+      expect(accounts).toHaveLength(43);
+      expect(accounts[0].issuer).toBe('Netlify');
+      expect(accounts[1].issuer).toBe('Brevo');
+      expect(accounts[42].issuer).toBe('gitlab.com');
+    }
+  });
 });
