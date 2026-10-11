@@ -1,4 +1,4 @@
-import protobuf from 'protobufjs/light';
+import { Reader, Writer } from 'protobufjs/light';
 import {
   AuthenticatorAccount,
   GoogleAlgorithm,
@@ -15,35 +15,147 @@ import {
   cleanBase32,
 } from './validation';
 
-const PROTO_DESCRIPTOR = {
-  nested: {
-    MigrationPayload: {
-      fields: {
-        otpParameters: { rule: 'repeated', type: 'OtpParameters', id: 1 },
-        version: { type: 'int32', id: 2 },
-        batchSize: { type: 'int32', id: 3 },
-        batchIndex: { type: 'int32', id: 4 },
-        batchId: { type: 'int32', id: 5 },
-      },
-      nested: {
-        OtpParameters: {
-          fields: {
-            secret: { type: 'bytes', id: 1 },
-            name: { type: 'string', id: 2 },
-            issuer: { type: 'string', id: 3 },
-            algorithm: { type: 'int32', id: 4 },
-            digits: { type: 'int32', id: 5 },
-            type: { type: 'int32', id: 6 },
-            counter: { type: 'int64', id: 7 },
-          },
-        },
-      },
-    },
-  },
-};
+interface RawOtpParameters {
+  secret: Uint8Array;
+  name?: string;
+  issuer?: string;
+  algorithm?: number;
+  digits?: number;
+  type?: number;
+  counter?: number;
+}
 
-const root = protobuf.Root.fromJSON(PROTO_DESCRIPTOR as any);
-const MigrationPayloadType = root.lookupType('MigrationPayload');
+interface RawMigrationPayload {
+  otpParameters: RawOtpParameters[];
+  version?: number;
+  batchSize?: number;
+  batchIndex?: number;
+  batchId?: number;
+}
+
+function decodeOtpParameters(reader: Reader, length: number): RawOtpParameters {
+  const end = length !== undefined ? reader.pos + length : reader.len;
+  const message: RawOtpParameters = {
+    secret: new Uint8Array(0),
+    name: '',
+    issuer: '',
+    algorithm: 0,
+    digits: 0,
+    type: 0,
+    counter: 0,
+  };
+  while (reader.pos < end) {
+    const tag = reader.uint32();
+    switch (tag >>> 3) {
+      case 1:
+        message.secret = reader.bytes();
+        break;
+      case 2:
+        message.name = reader.string();
+        break;
+      case 3:
+        message.issuer = reader.string();
+        break;
+      case 4:
+        message.algorithm = reader.int32();
+        break;
+      case 5:
+        message.digits = reader.int32();
+        break;
+      case 6:
+        message.type = reader.int32();
+        break;
+      case 7:
+        message.counter = Number(reader.int64());
+        break;
+      default:
+        reader.skipType(tag & 7);
+        break;
+    }
+  }
+  return message;
+}
+
+function decodeMigrationPayload(reader: Reader, length?: number): RawMigrationPayload {
+  const end = length !== undefined ? reader.pos + length : reader.len;
+  const message: RawMigrationPayload = {
+    otpParameters: [],
+    version: 0,
+    batchSize: 0,
+    batchIndex: 0,
+    batchId: 0,
+  };
+  while (reader.pos < end) {
+    const tag = reader.uint32();
+    switch (tag >>> 3) {
+      case 1:
+        message.otpParameters.push(decodeOtpParameters(reader, reader.uint32()));
+        break;
+      case 2:
+        message.version = reader.int32();
+        break;
+      case 3:
+        message.batchSize = reader.int32();
+        break;
+      case 4:
+        message.batchIndex = reader.int32();
+        break;
+      case 5:
+        message.batchId = reader.int32();
+        break;
+      default:
+        reader.skipType(tag & 7);
+        break;
+    }
+  }
+  return message;
+}
+
+function encodeOtpParameters(message: RawOtpParameters, writer: Writer = Writer.create()): Writer {
+  if (message.secret && message.secret.length) {
+    writer.uint32(10).bytes(message.secret);
+  }
+  if (message.name) {
+    writer.uint32(18).string(message.name);
+  }
+  if (message.issuer) {
+    writer.uint32(26).string(message.issuer);
+  }
+  if (message.algorithm) {
+    writer.uint32(32).int32(message.algorithm);
+  }
+  if (message.digits) {
+    writer.uint32(40).int32(message.digits);
+  }
+  if (message.type) {
+    writer.uint32(48).int32(message.type);
+  }
+  if (message.counter) {
+    writer.uint32(56).int64(message.counter);
+  }
+  return writer;
+}
+
+function encodeMigrationPayload(message: RawMigrationPayload, writer: Writer = Writer.create()): Writer {
+  if (message.otpParameters && message.otpParameters.length) {
+    for (let i = 0; i < message.otpParameters.length; ++i) {
+      encodeOtpParameters(message.otpParameters[i], writer.uint32(10).fork()).ldelim();
+    }
+  }
+  if (message.version) {
+    writer.uint32(16).int32(message.version);
+  }
+  if (message.batchSize) {
+    writer.uint32(24).int32(message.batchSize);
+  }
+  if (message.batchIndex) {
+    writer.uint32(32).int32(message.batchIndex);
+  }
+  if (message.batchId) {
+    writer.uint32(40).int32(message.batchId);
+  }
+  return writer;
+}
 
 export interface MigrationBatch {
   accounts: AuthenticatorAccount[];
@@ -72,12 +184,8 @@ export function parseGoogleMigrationUri(uriString: string): MigrationBatch {
   const decodedData = decodeURIComponent(dataParam);
   const payloadBytes = base64ToBytes(decodedData);
 
-  const message = MigrationPayloadType.decode(payloadBytes) as any;
-  const rawObj = MigrationPayloadType.toObject(message, {
-    bytes: Uint8Array,
-    longs: Number,
-    defaults: true,
-  });
+  const reader = Reader.create(payloadBytes);
+  const rawObj = decodeMigrationPayload(reader);
 
   const rawParameters = rawObj.otpParameters || [];
   const accounts: AuthenticatorAccount[] = [];
@@ -162,7 +270,7 @@ export function exportGoogleMigrationUris(
 
   for (let idx = 0; idx < batches.length; idx++) {
     const batchAccounts = batches[idx];
-    const otpParameters = batchAccounts.map((acc) => {
+    const otpParameters: RawOtpParameters[] = batchAccounts.map((acc) => {
       let algoNum = GoogleAlgorithm.ALGORITHM_SHA1;
       if (acc.algorithm === 'SHA-256') algoNum = GoogleAlgorithm.ALGORITHM_SHA256;
       if (acc.algorithm === 'SHA-512') algoNum = GoogleAlgorithm.ALGORITHM_SHA512;
@@ -186,7 +294,7 @@ export function exportGoogleMigrationUris(
       };
     });
 
-    const payloadObj = {
+    const payloadObj: RawMigrationPayload = {
       otpParameters,
       version: 1,
       batchSize: totalBatches,
@@ -194,13 +302,7 @@ export function exportGoogleMigrationUris(
       batchId,
     };
 
-    const errMsg = MigrationPayloadType.verify(payloadObj);
-    if (errMsg) {
-      throw new Error(`Protobuf verification failed: ${errMsg}`);
-    }
-
-    const message = MigrationPayloadType.create(payloadObj);
-    const encodedBuffer = MigrationPayloadType.encode(message).finish();
+    const encodedBuffer = encodeMigrationPayload(payloadObj).finish();
     const base64String = bytesToBase64(encodedBuffer);
     const uri = `otpauth-migration://offline?data=${encodeURIComponent(base64String)}`;
     uris.push(uri);

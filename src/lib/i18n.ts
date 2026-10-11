@@ -180,6 +180,7 @@ export const translations = {
     select_all: 'Select All',
     deselect_all: 'Deselect',
     back: 'Back',
+    btn_add_more: '+ Add More',
     no_accounts_to_import: 'No accounts to import based on your selection.',
     file_read_error: 'Failed to read file.',
     import_failed: 'Import failed.',

@@ -69,35 +69,85 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     }
   }, [autoTriggerPicker, preloadedAccounts]);
 
-  const handleFile = async (file: File) => {
+  const handleFiles = async (files: FileList | File[]) => {
     setErrorMsg(null);
-    const isImage = file.type.startsWith("image/");
-    if (isImage) {
-      try {
-        const decodedQr = await decodeQrFromImageFile(file);
-        if (!decodedQr) {
-          setErrorMsg(t("qr_decode_failed"));
-          return;
+    const fileList = Array.from(files);
+    if (fileList.length === 0) return;
+
+    const accumulated: AuthenticatorAccount[] = [];
+    let hadError: string | null = null;
+
+    for (const file of fileList) {
+      const isImage = file.type.startsWith("image/");
+      if (isImage) {
+        try {
+          const decodedQr = await decodeQrFromImageFile(file);
+          if (!decodedQr) {
+            hadError = t("qr_decode_failed");
+            continue;
+          }
+          const parsed = await parseImportString(decodedQr);
+          accumulated.push(...parsed);
+        } catch (err: any) {
+          hadError = err.message || t("qr_decode_failed");
         }
-        await processRawText(decodedQr);
-      } catch (err: any) {
-        setErrorMsg(err.message || t("qr_decode_failed"));
+      } else {
+        try {
+          const text = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error(t("file_read_error")));
+            reader.readAsText(file);
+          });
+          const parsed = await parseImportString(text);
+          accumulated.push(...parsed);
+        } catch (err: any) {
+          if (err.message === "PASSWORD_REQUIRED") {
+            const reader = new FileReader();
+            reader.onload = () => {
+              setRawJsonPayload(reader.result as string);
+              setPasswordRequired(true);
+            };
+            reader.readAsText(file);
+            return;
+          }
+          hadError = err.message || t("import_failed");
+        }
       }
-    } else {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = reader.result as string;
-        processRawText(text);
-      };
-      reader.onerror = () => setErrorMsg(t("file_read_error"));
-      reader.readAsText(file);
+    }
+
+    if (accumulated.length > 0) {
+      setCandidates((prev) => {
+        const seen = new Set(
+          prev.map(
+            (a) =>
+              `${a.issuer.toLowerCase()}:::${a.name.toLowerCase()}:::${a.secret}`,
+          ),
+        );
+        const toAdd = accumulated.filter(
+          (a) =>
+            !seen.has(
+              `${a.issuer.toLowerCase()}:::${a.name.toLowerCase()}:::${a.secret}`,
+            ),
+        );
+        return [...prev, ...toAdd];
+      });
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        accumulated.forEach((a) => next.add(a.id));
+        return next;
+      });
+      setErrorMsg(null);
+    } else if (hadError) {
+      setErrorMsg(hadError);
     }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await handleFile(file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await handleFiles(files);
+    e.target.value = "";
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -116,9 +166,9 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      await handleFile(file);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      await handleFiles(files);
     }
   };
 
@@ -149,8 +199,27 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     setErrorMsg(null);
     try {
       const parsed = await parseImportString(text, pwd);
-      setCandidates(parsed);
-      setSelectedIds(new Set(parsed.map((a) => a.id)));
+      setCandidates((prev) => {
+        if (prev.length === 0) return parsed;
+        const seen = new Set(
+          prev.map(
+            (a) =>
+              `${a.issuer.toLowerCase()}:::${a.name.toLowerCase()}:::${a.secret}`,
+          ),
+        );
+        const toAdd = parsed.filter(
+          (a) =>
+            !seen.has(
+              `${a.issuer.toLowerCase()}:::${a.name.toLowerCase()}:::${a.secret}`,
+            ),
+        );
+        return [...prev, ...toAdd];
+      });
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        parsed.forEach((a) => next.add(a.id));
+        return next;
+      });
       setPasswordRequired(false);
     } catch (err: any) {
       if (err.message === "PASSWORD_REQUIRED") {
@@ -220,6 +289,15 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
       <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".sauth,.json,image/*"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-2">
             <ArrowUpDown size={18} className="app-text-accent" />
@@ -315,13 +393,6 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             <ExportContent accounts={existingAccounts} />
           ) : (
             <div className="flex flex-col gap-2 py-2 text-xs">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".sauth,.json,image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
               <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -387,6 +458,15 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 {t("import_accounts_detected", { count: candidates.length })}
               </span>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isImporting}
+                  className="app-text-accent hover:opacity-80 text-[11px] disabled:opacity-50 font-medium"
+                >
+                  {t("btn_add_more")}
+                </button>
+                <span className="app-text-muted">|</span>
                 <button
                   onClick={selectAll}
                   disabled={isImporting}

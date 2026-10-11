@@ -97,6 +97,35 @@ export async function parseImportString(
 ): Promise<AuthenticatorAccount[]> {
   const trimmed = input.trim();
 
+  const lines = trimmed.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    const multiAccounts: AuthenticatorAccount[] = [];
+    for (const line of lines) {
+      if (isGoogleMigrationUri(line)) {
+        const batch = parseGoogleMigrationUri(line);
+        multiAccounts.push(...batch.accounts);
+      } else if (line.toLowerCase().startsWith('otpauth://')) {
+        const parsed = parseOtpUri(line);
+        multiAccounts.push({
+          id: crypto.randomUUID(),
+          issuer: parsed.issuer,
+          name: parsed.name,
+          secret: parsed.secret,
+          type: parsed.type,
+          algorithm: parsed.algorithm,
+          digits: parsed.digits,
+          period: parsed.period,
+          counter: parsed.counter,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      }
+    }
+    if (multiAccounts.length > 0) {
+      return multiAccounts;
+    }
+  }
+
   if (isGoogleMigrationUri(trimmed)) {
     const batch = parseGoogleMigrationUri(trimmed);
     return batch.accounts;

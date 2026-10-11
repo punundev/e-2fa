@@ -81,4 +81,15 @@ describe('Import Export JSON Parser', () => {
       expect(accounts[42].issuer).toBe('gitlab.com');
     }
   });
+
+  it('parses multi-line Google migration URIs and standard otpauth URIs', async () => {
+    const multiLineInput = `
+      otpauth://totp/GitHub:user1?secret=JBSWY3DPEHPK3PXP&issuer=GitHub
+      otpauth://totp/Google:user2?secret=JBSWY3DPEHPK3PXP&issuer=Google
+    `;
+    const accounts = await parseImportString(multiLineInput);
+    expect(accounts).toHaveLength(2);
+    expect(accounts[0].issuer).toBe('GitHub');
+    expect(accounts[1].issuer).toBe('Google');
+  });
 });
