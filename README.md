@@ -28,9 +28,9 @@ A production-ready, security-focused Google Chrome extension (Manifest V3) for m
 - **Polished UI/UX**:
   - Lightweight Chrome action popup (~380px width) with smooth circular countdown animations.
   - 3-Axis Customization:
-    - **Theme Mode**: Dark, Light, and System.
+    - **Theme Mode**: Dark and Light.
     - **Accent Color**: Blue, Green, Violet, Yellow, Red, Orange, Cyan, and Rose.
-    - **Design Style**: Rounded (smooth modern corners), Sharp (industrial 0px edges), Compact (dense padding), and Glass (frosted glassmorphism).
+    - **Design Style**: Rounded (smooth modern corners), Sharp (industrial 0px edges), Compact (dense padding), Glass (frosted glassmorphism), Clay (3D puffy claymorphism), Apple UI (Cupertino HIG squircles & hairline materials), and Neumorphic (soft extruded 3D surfaces).
   - Custom Wallpaper Presets and file upload with adjustable dimming.
   - Search by issuer and account label with category groups and favorites/pins.
   - Dedicated Options page dashboard.

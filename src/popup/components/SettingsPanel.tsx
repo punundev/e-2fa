@@ -9,12 +9,13 @@ import {
   Trash,
   Sun,
   Moon,
-  Laptop,
   Palette,
   Circle,
   Square,
   Layers,
-  Sparkles,
+  Box,
+  Command,
+  Disc,
   Check,
   Download,
   ArrowUpDown,
@@ -63,10 +64,22 @@ const DESIGN_OPTIONS: Array<{
     icon: Layers,
   },
   {
-    id: "glass",
-    nameKey: "design_glass",
-    descKey: "design_glass_desc",
-    icon: Sparkles,
+    id: "clay",
+    nameKey: "design_clay",
+    descKey: "design_clay_desc",
+    icon: Box,
+  },
+  {
+    id: "apple",
+    nameKey: "design_apple",
+    descKey: "design_apple_desc",
+    icon: Command,
+  },
+  {
+    id: "neumorphic",
+    nameKey: "design_neumorphic",
+    descKey: "design_neumorphic_desc",
+    icon: Disc,
   },
 ];
 
@@ -108,15 +121,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-2xl flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <h3 className="text-sm font-semibold app-text-primary">
             {t("settings_title")}
           </h3>
-          <button
-            onClick={onClose}
-            className="app-btn-icon"
-          >
+          <button onClick={onClose} className="app-btn-icon">
             <X size={16} />
           </button>
         </div>
@@ -128,13 +138,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <Sun size={13} className="text-amber-400" />
               <span>{t("theme_mode_title")}</span>
             </label>
-            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl app-bg-subtle border border-[var(--border-subtle)]">
+            <div className="grid grid-cols-2 gap-1.5 p-0.5 rounded-md app-bg-subtle border border-[var(--border-subtle)]">
               <button
                 type="button"
                 onClick={() => {
                   onUpdateSettings({ mode: "dark", theme: "dark" });
                 }}
-                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg font-medium transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md font-medium transition-all ${
                   (settings.mode ||
                     (settings.theme === "light" ? "light" : "dark")) === "dark"
                     ? "app-bg-card app-text-primary shadow-xs border border-[var(--border-card)]"
@@ -150,7 +160,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 onClick={() => {
                   onUpdateSettings({ mode: "light", theme: "light" });
                 }}
-                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg font-medium transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md font-medium transition-all ${
                   (settings.mode ||
                     (settings.theme === "light" ? "light" : "dark")) === "light"
                     ? "app-bg-card app-text-primary shadow-xs border border-[var(--border-card)]"
@@ -159,21 +169,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               >
                 <Sun size={13} />
                 <span>{t("theme_mode_light")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onUpdateSettings({ mode: "system", theme: "system" });
-                }}
-                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg font-medium transition-all ${
-                  (settings.mode || settings.theme) === "system"
-                    ? "app-bg-card app-text-primary shadow-xs border border-[var(--border-card)]"
-                    : "app-text-muted hover:app-text-primary"
-                }`}
-              >
-                <Laptop size={13} />
-                <span>{t("theme_mode_system")}</span>
               </button>
             </div>
           </div>
@@ -184,7 +179,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <Palette size={13} className="app-text-accent" />
               <span>{t("theme_color_title")}</span>
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-8 gap-1.5 p-0.5 rounded-md app-bg-subtle border border-[var(--border-subtle)]">
               {COLOR_OPTIONS.map((color) => {
                 const activeColor =
                   settings.accentColor ||
@@ -200,27 +195,21 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     type="button"
                     onClick={() => onUpdateSettings({ accentColor: color.id })}
                     title={t(color.nameKey)}
-                    className={`flex items-center gap-1.5 p-1.5 rounded-lg border transition-all text-left ${
+                    aria-label={t(color.nameKey)}
+                    style={{ backgroundColor: color.hex }}
+                    className={`aspect-square rounded-md flex items-center justify-center transition-all shadow-xs ${
                       isSelected
-                        ? "border-[var(--accent)] app-bg-card ring-1 ring-[var(--accent)] shadow-xs"
-                        : "border-[var(--border-subtle)] app-bg-subtle hover:border-[var(--border-card-hover)]"
+                        ? "ring-2 ring-offset-2 ring-[var(--accent)] ring-offset-[var(--bg-main)] scale-110"
+                        : "opacity-80 hover:opacity-100 hover:scale-105"
                     }`}
                   >
-                    <div
-                      style={{ backgroundColor: color.hex }}
-                      className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 shadow-xs"
-                    >
-                      {isSelected && (
-                        <Check
-                          size={10}
-                          className="text-white drop-shadow-xs"
-                          strokeWidth={3}
-                        />
-                      )}
-                    </div>
-                    <span className="text-[11px] app-text-primary font-medium truncate">
-                      {t(color.nameKey)}
-                    </span>
+                    {isSelected && (
+                      <Check
+                        size={12}
+                        className="text-white drop-shadow-xs"
+                        strokeWidth={3}
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -313,7 +302,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       onUpdateSettings({ customWallpaper: preset.id })
                     }
                     style={{ background: preset.previewGradient }}
-                    className={`h-8 rounded-lg border transition-all relative overflow-hidden flex items-center justify-center ${
+                    className={`h-8 rounded-md border transition-all relative overflow-hidden flex items-center justify-center ${
                       isSelected
                         ? "border-[var(--accent)] ring-2 ring-[var(--accent)] scale-105"
                         : "border-[var(--border-subtle)] opacity-70 hover:opacity-100 hover:border-[var(--border-card-hover)]"
@@ -335,7 +324,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full py-1.5 px-2.5 rounded-lg app-btn-secondary text-xs flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full py-1.5 px-2.5 rounded-md app-btn-secondary text-xs flex items-center justify-center gap-1.5 transition-colors"
             >
               <Upload size={13} className="app-text-accent" />
               <span>{t("wallpaper_upload_btn")}</span>
@@ -344,7 +333,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             {/* Wallpaper Dim Slider when wallpaper is active */}
             {settings.customWallpaper &&
               settings.customWallpaper !== "none" && (
-                <div className="mt-2 p-2 rounded-lg app-bg-subtle border border-[var(--border-subtle)]">
+                <div className="mt-2 p-2 rounded-md app-bg-subtle border border-[var(--border-subtle)]">
                   <div className="flex items-center justify-between text-[11px] app-text-secondary mb-1">
                     <span>
                       {t("wallpaper_dim_label", {
@@ -361,7 +350,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     onChange={(e) =>
                       onUpdateSettings({ wallpaperDim: Number(e.target.value) })
                     }
-                    className="w-full h-1.5 rounded-lg cursor-pointer accent-[var(--accent)]"
+                    className="w-full h-1.5 rounded-md cursor-pointer accent-[var(--accent)]"
                   />
                 </div>
               )}
@@ -376,7 +365,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               onChange={(e) =>
                 onUpdateSettings({ autoLockTimeout: Number(e.target.value) })
               }
-              className="w-full px-2.5 py-1.5 rounded-lg app-input"
+              className="w-full px-2.5 py-1.5 rounded-md app-input"
             >
               <option value={1}>{t("autolock_minutes", { minutes: 1 })}</option>
               <option value={5}>{t("autolock_minutes", { minutes: 5 })}</option>
@@ -401,7 +390,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   clipboardClearDelay: Number(e.target.value),
                 })
               }
-              className="w-full px-2.5 py-1.5 rounded-lg app-input"
+              className="w-full px-2.5 py-1.5 rounded-md app-input"
             >
               <option value={15}>
                 {t("clipboard_clear_seconds", { seconds: 15 })}
@@ -425,7 +414,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               onChange={(e) =>
                 onUpdateSettings({ codeGrouping: e.target.value as any })
               }
-              className="w-full px-2.5 py-1.5 rounded-lg app-input"
+              className="w-full px-2.5 py-1.5 rounded-md app-input"
             >
               <option value="grouped">{t("code_grouped")}</option>
               <option value="plain">{t("code_plain")}</option>
@@ -439,7 +428,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   onLockVault();
                   onClose();
                 }}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg app-btn-secondary font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-md app-btn-secondary font-medium transition-colors"
               >
                 <Lock size={14} className="text-amber-400" />
                 <span>{t("lock_vault")}</span>
@@ -459,7 +448,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   onClose();
                   onOpenImportExport?.("import");
                 }}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg app-btn-secondary text-xs font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-md app-btn-secondary text-xs font-medium transition-colors"
               >
                 <Download size={13} />
                 <span>{t("tab_import")}</span>
@@ -470,7 +459,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   onClose();
                   onOpenImportExport?.("export");
                 }}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg app-btn-secondary text-xs font-medium transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-md app-btn-secondary text-xs font-medium transition-colors"
               >
                 <Upload size={13} />
                 <span>{t("tab_export")}</span>
@@ -483,7 +472,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <Shield size={12} className="app-text-accent" />
               <span>{t("about_title")}</span>
             </h4>
-            <div className="p-2.5 rounded-lg app-bg-subtle border border-[var(--border-subtle)] text-[11px] app-text-secondary leading-relaxed">
+            <div className="p-2.5 rounded-md app-bg-subtle border border-[var(--border-subtle)] text-[11px] app-text-secondary leading-relaxed">
               <p className="font-semibold app-text-primary">
                 {t("about_version")}
               </p>
@@ -498,7 +487,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </h4>
             <button
               onClick={() => setShowWipeConfirm(true)}
-              className="w-full py-2 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-400 font-medium transition-colors"
+              className="w-full py-2 px-3 rounded-md bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-400 font-medium transition-colors"
             >
               {t("wipe_all_title")}
             </button>
@@ -507,7 +496,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
         {showWipeConfirm && (
           <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-            <div className="w-full max-w-xs rounded-xl app-modal border border-red-500/40 p-4 shadow-2xl text-center">
+            <div className="w-full max-w-xs rounded-xl app-modal border border-red-500/40 p-4 shadow-sm text-center">
               <Trash2 size={24} className="text-red-500 mx-auto mb-2" />
               <h4 className="text-sm font-bold text-red-400 mb-1">
                 {t("wipe_all_title")}
@@ -518,7 +507,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowWipeConfirm(false)}
-                  className="px-3 py-1.5 text-xs rounded-lg app-btn-secondary"
+                  className="px-3 py-1.5 text-xs rounded-md app-btn-secondary"
                 >
                   {t("cancel")}
                 </button>
@@ -528,7 +517,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     onWipeData();
                     onClose();
                   }}
-                  className="px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white font-medium hover:bg-red-500"
+                  className="px-3 py-1.5 text-xs rounded-md bg-red-600 text-white font-medium hover:bg-red-500"
                 >
                   {t("wipe_all_btn")}
                 </button>

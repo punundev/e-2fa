@@ -18,6 +18,7 @@ import { parseImportString, checkDuplicate } from "../../lib/import-export";
 import { decodeQrFromImageFile } from "../../lib/qr-code";
 import { t } from "../../lib/i18n";
 import { ExportContent } from "./ExportModal";
+import { BrandLogo } from "./BrandLogo";
 
 interface ImportModalProps {
   existingAccounts: AuthenticatorAccount[];
@@ -218,7 +219,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-2xl flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-2">
             <ArrowUpDown size={18} className="app-text-accent" />
@@ -314,70 +315,70 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             <ExportContent accounts={existingAccounts} />
           ) : (
             <div className="flex flex-col gap-2 py-2 text-xs">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".sauth,.json,image/*"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={handleUploadBoxClick}
-              className={`flex flex-col items-center justify-center p-5 rounded-xl border-2 border-dashed transition-colors cursor-pointer text-center ${
-                isDragging
-                  ? "border-[var(--accent)] bg-[var(--accent-glow)]"
-                  : "border-[var(--border-subtle)] hover:border-[var(--accent)] app-bg-subtle hover:bg-[var(--bg-subtle-hover)]"
-              }`}
-            >
-              <Upload size={24} className="app-text-accent mb-2" />
-              <span className="text-xs font-semibold app-text-primary">
-                {t("upload_backup_title")}
-              </span>
-              <span className="text-[10px] app-text-muted mt-0.5">
-                {t("upload_backup_hint")}
-              </span>
-              <span className="text-[10px] app-text-accent font-medium mt-1">
-                {isPopup ? t("open_tab_safe_notice") : t("drag_drop_hint")}
-              </span>
-            </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".sauth,.json,image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleUploadBoxClick}
+                className={`flex flex-col items-center justify-center p-5 rounded-xl border-1 border-dashed transition-colors cursor-pointer text-center ${
+                  isDragging
+                    ? "border-[var(--accent)] bg-[var(--accent-glow)]"
+                    : "border-[var(--border-subtle)] hover:border-[var(--accent)] app-bg-subtle hover:bg-[var(--bg-subtle-hover)]"
+                }`}
+              >
+                <Upload size={24} className="app-text-accent mb-2" />
+                <span className="text-xs font-semibold app-text-primary">
+                  {t("upload_backup_title")}
+                </span>
+                <span className="text-[10px] app-text-muted mt-0.5">
+                  {t("upload_backup_hint")}
+                </span>
+                <span className="text-[10px] app-text-accent font-medium mt-1">
+                  {isPopup ? t("open_tab_safe_notice") : t("drag_drop_hint")}
+                </span>
+              </div>
 
-            {isPopup && (
-              <div className="flex justify-end">
+              {isPopup && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleOpenFullTab}
+                    className="flex items-center gap-1 text-[11px] app-text-accent hover:opacity-80 transition-colors"
+                  >
+                    <ExternalLink size={12} />
+                    <span>{t("open_full_tab_label")}</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <label className="app-text-secondary font-medium flex items-center gap-1.5">
+                  <FileText size={13} className="app-text-muted" />
+                  <span>{t("paste_payload_label")}</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={inputRaw}
+                  onChange={(e) => setInputRaw(e.target.value)}
+                  placeholder={t("paste_placeholder")}
+                  className="w-full p-2 rounded-lg app-input font-mono text-[11px]"
+                />
                 <button
-                  type="button"
-                  onClick={handleOpenFullTab}
-                  className="flex items-center gap-1 text-[11px] app-text-accent hover:opacity-80 transition-colors"
+                  onClick={() => processRawText(inputRaw)}
+                  disabled={!inputRaw.trim()}
+                  className="self-end px-3 py-1.5 rounded-lg app-btn-primary disabled:opacity-50 font-medium transition-colors"
                 >
-                  <ExternalLink size={12} />
-                  <span>{t("open_full_tab_label")}</span>
+                  {t("parse_payload_btn")}
                 </button>
               </div>
-            )}
-
-            <div className="flex flex-col gap-1.5">
-              <label className="app-text-secondary font-medium flex items-center gap-1.5">
-                <FileText size={13} className="app-text-muted" />
-                <span>{t("paste_payload_label")}</span>
-              </label>
-              <textarea
-                rows={3}
-                value={inputRaw}
-                onChange={(e) => setInputRaw(e.target.value)}
-                placeholder={t("paste_placeholder")}
-                className="w-full p-2 rounded-lg app-input font-mono text-[11px]"
-              />
-              <button
-                onClick={() => processRawText(inputRaw)}
-                disabled={!inputRaw.trim()}
-                className="self-end px-3 py-1.5 rounded-lg app-btn-primary disabled:opacity-50 font-medium transition-colors"
-              >
-                {t("parse_payload_btn")}
-              </button>
             </div>
-          </div>
           )
         ) : (
           <div className="flex flex-col gap-2 text-xs">
@@ -419,13 +420,18 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                         : "border-[var(--border-subtle)] app-bg-subtle opacity-70"
                     }`}
                   >
-                    <div className="mt-0.5 app-text-accent">
+                    <div className="mt-1 app-text-accent">
                       {isSelected ? (
                         <CheckSquare size={15} />
                       ) : (
                         <Square size={15} />
                       )}
                     </div>
+                    <BrandLogo
+                      issuer={item.issuer}
+                      name={item.name}
+                      size={24}
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold app-text-primary truncate">

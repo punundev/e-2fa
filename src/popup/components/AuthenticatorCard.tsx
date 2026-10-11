@@ -15,6 +15,7 @@ import { generateHotp } from "../../lib/hotp";
 import { formatOtpUri } from "../../lib/otp-uri";
 import { CountdownRing } from "./CountdownRing";
 import { CodeDisplay } from "./CodeDisplay";
+import { BrandLogo } from "./BrandLogo";
 import { t } from "../../lib/i18n";
 
 interface AuthenticatorCardProps {
@@ -128,20 +129,23 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
   return (
     <div className="relative p-2 rounded-xl app-card">
       <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-semibold truncate leading-snug">
-              {account.issuer}
-            </h3>
-            {account.group && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded app-badge font-medium">
-                {account.group}
-              </span>
-            )}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <BrandLogo issuer={account.issuer} name={account.name} size={28} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold truncate leading-snug">
+                {account.issuer}
+              </h3>
+              {account.group && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded app-badge font-medium">
+                  {account.group}
+                </span>
+              )}
+            </div>
+            <p className="text-xs app-text-secondary truncate mt-0.5">
+              {account.name}
+            </p>
           </div>
-          <p className="text-xs app-text-secondary truncate mt-0.5">
-            {account.name}
-          </p>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
@@ -171,7 +175,7 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
                   className="fixed inset-0 z-10"
                   onClick={() => setMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-7 z-20 w-44 rounded-lg app-modal py-1 text-xs shadow-xl">
+                <div className="absolute right-0 top-7 z-20 w-44 rounded-lg app-modal py-1 text-xs shadow-sm">
                   <button
                     onClick={() => {
                       setMenuOpen(false);
@@ -249,7 +253,7 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-xs rounded-xl app-modal p-4 shadow-2xl">
+          <div className="w-full max-w-xs rounded-xl app-modal p-4 shadow-sm">
             <h4 className="text-sm font-semibold app-text-primary mb-1">
               {t("delete_confirm_title")}
             </h4>

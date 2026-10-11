@@ -65,7 +65,9 @@ export const App: React.FC = () => {
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [importModalTab, setImportModalTab] = useState<"import" | "export">("import");
+  const [importModalTab, setImportModalTab] = useState<"import" | "export">(
+    "import",
+  );
   const [showExportModal, setShowExportModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingAccount, setEditingAccount] =
@@ -114,14 +116,7 @@ export const App: React.FC = () => {
   }, []);
 
   const resolvedMode = useMemo(() => {
-    const mode =
-      settings.mode || (settings.theme === "light" ? "light" : "dark");
-    if (mode === "system") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
-    return mode;
+    return settings.mode || (settings.theme === "light" ? "light" : "dark");
   }, [settings.mode, settings.theme]);
 
   const activeColor =
@@ -142,7 +137,10 @@ export const App: React.FC = () => {
       resolvedMode === "dark" ? "slate" : "light",
     );
     document.documentElement.classList.toggle("dark", resolvedMode === "dark");
-    document.documentElement.classList.toggle("light", resolvedMode === "light");
+    document.documentElement.classList.toggle(
+      "light",
+      resolvedMode === "light",
+    );
     document.documentElement.className =
       `mode-${resolvedMode} color-${activeColor} design-${activeDesign} ${resolvedMode}`.trim();
     document.body.className =
@@ -393,7 +391,7 @@ export const App: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1 overflow-y-auto p-3 flex flex-col">
+      <main className="relative z-10 flex-1 overflow-y-auto p-2 flex flex-col">
         {!vaultState.isInitialized ? (
           <PasswordDialog
             mode="setup"

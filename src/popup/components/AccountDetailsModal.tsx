@@ -3,6 +3,7 @@ import { X, Eye, EyeOff, QrCode, Copy, Check } from "lucide-react";
 import { AuthenticatorAccount } from "../../types";
 import { formatOtpUri } from "../../lib/otp-uri";
 import { generateQrDataUrl } from "../../lib/qr-code";
+import { BrandLogo } from "./BrandLogo";
 import { t } from "../../lib/i18n";
 
 interface AccountDetailsModalProps {
@@ -41,7 +42,7 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-2xl flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <div className="flex items-center gap-2">
             <QrCode size={18} className="app-text-accent" />
@@ -49,19 +50,19 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
               {t("account_details_title")}
             </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="app-btn-icon"
-          >
+          <button onClick={onClose} className="app-btn-icon">
             <X size={16} />
           </button>
         </div>
 
-        <div className="text-center">
-          <h4 className="text-base font-bold app-text-primary">
-            {account.issuer}
-          </h4>
-          <p className="text-xs app-text-secondary">{account.name}</p>
+        <div className="flex flex-col items-center gap-1.5 py-1">
+          <BrandLogo issuer={account.issuer} name={account.name} size={36} />
+          <div className="text-center">
+            <h4 className="text-base font-bold app-text-primary">
+              {account.issuer}
+            </h4>
+            <p className="text-xs app-text-secondary">{account.name}</p>
+          </div>
         </div>
 
         {qrUrl && (

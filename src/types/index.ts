@@ -18,9 +18,9 @@ export interface AuthenticatorAccount {
   updatedAt: number;
 }
 
-export type ThemeMode = 'system' | 'dark' | 'light';
+export type ThemeMode = 'dark' | 'light';
 export type ThemeColor = 'blue' | 'green' | 'violet' | 'yellow' | 'red' | 'orange' | 'cyan' | 'rose';
-export type ThemeDesign = 'rounded' | 'sharp' | 'compact' | 'glass';
+export type ThemeDesign = 'rounded' | 'sharp' | 'compact' | 'glass' | 'clay' | 'apple' | 'neumorphic';
 
 export interface AppSettings {
   theme: 'system' | 'light' | 'dark' | 'oled' | 'violet';
