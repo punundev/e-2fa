@@ -177,3 +177,40 @@ Before publishing to the Chrome Web Store:
 3. Upload `extension.zip` to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 4. Attach `PRIVACY.md` in the store privacy declaration.
 
+---
+
+## Troubleshooting
+
+### Invalid 2FA Codes (Clock Synchronization)
+
+TOTP verification relies on precise timekeeping (RFC 6238). If your computer clock is drifted by more than 30 seconds, generated 2FA codes will be rejected as invalid.
+
+On Debian 13, the NTP time service is not installed by default (which is why `timedatectl` reports `Failed to set ntp: NTP not supported`).
+
+#### Option 1: Install Debian NTP Service (Recommended — Permanent)
+
+Install `systemd-timesyncd` (the standard lightweight systemd NTP client for Debian):
+
+```bash
+sudo apt update && sudo apt install -y systemd-timesyncd
+sudo timedatectl set-ntp true
+```
+
+After this runs, verify with:
+
+```bash
+timedatectl
+```
+
+You will see `System clock synchronized: yes` and `NTP service: active`.
+
+#### Option 2: Instant Sync (No packages required)
+
+To sync your clock to exact internet time immediately without installing any packages:
+
+```bash
+sudo date -s "$(curl -sI https://google.com | grep -i '^date:' | cut -d' ' -f2-)"
+```
+
+Once the clock is updated, the 2FA codes in your extension will immediately align with Google Authenticator and be accepted.
+
