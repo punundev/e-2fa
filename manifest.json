@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SynergyKH — 2FA",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Secure, local, offline 2FA authenticator supporting TOTP, HOTP, encrypted backups, and Google Authenticator migration.",
   "icons": {
     "16": "public/icons/logo.png",
@@ -24,7 +24,9 @@
     "service_worker": "src/background/service-worker.ts",
     "type": "module"
   },
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

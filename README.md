@@ -142,13 +142,13 @@ pnpm run typecheck
 
 ### Build for Production
 
-Build the production extension bundle in the `dist/` directory:
+Build the production extension bundle (automatically increments the patch version in `package.json` and manifests):
 
 ```bash
 pnpm run build
 ```
 
-Or with Makefile:
+Or with Makefile (automatically increments version and creates `extension.zip`):
 
 ```bash
 make build
@@ -162,10 +162,7 @@ make build
 2. Navigate to `chrome://extensions`.
 3. Enable **Developer mode** using the toggle switch in the upper-right corner.
 4. Click the **Load unpacked** button in the upper-left.
-5. Select the `dist` directory inside this project:
-   ```
-   /Users/nun/Desktop/extension/2fa/dist
-   ```
+5. Select the `dist` directory inside this project.
 6. The **SynergyKH — 2FA** extension will now appear in your Chrome toolbar.
 7. Click the extension icon to open the popup!
 
@@ -175,11 +172,8 @@ make build
 
 Before publishing to the Chrome Web Store:
 
-1. Run `make all` to ensure all tests, type checks, and production builds pass.
+1. Run `make all` (or `make build`) to ensure all checks pass and create `extension.zip`.
 2. Verify all icons in `public/icons/` (16x16, 32x32, 48x48, 128x128).
-3. Zip the contents of the `dist` directory:
-   ```bash
-   cd dist && zip -r ../secureauth-extension.zip . && cd ..
-   ```
-4. Upload `secureauth-extension.zip` to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
-5. Attach `PRIVACY.md` in the store privacy declaration.
+3. Upload `extension.zip` to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
+4. Attach `PRIVACY.md` in the store privacy declaration.
+

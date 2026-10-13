@@ -89,6 +89,36 @@ describe('Google Authenticator Migration Protobuf', () => {
     expect(acc3.counter).toBe(15);
   });
 
+  it('decodes real-world Google Authenticator migration vector', () => {
+    const vectorUri =
+      'otpauth-migration://offline?data=CiQKChkAMJCF7zetb50SEmdpdGh1Yi5jb206YnJvb2tzdBoCbWUQARgBKAE%3D';
+    const batch = parseGoogleMigrationUri(vectorUri);
+    expect(batch.accounts).toHaveLength(1);
+    expect(batch.accounts[0].name).toContain('brookst');
+    expect(batch.accounts[0].secret).toBe('DEADBEEF54322345');
+  });
+
+  it('handles URIs with literal plus in data param', () => {
+    const uris = exportGoogleMigrationUris([
+      {
+        id: '1',
+        issuer: 'Test',
+        name: 'test',
+        secret: 'JBSWY3DPEHPK3PXP',
+        type: 'totp',
+        algorithm: 'SHA-1',
+        digits: 6,
+        period: 30,
+        counter: 0,
+        createdAt: 1000,
+        updatedAt: 1000,
+      },
+    ]);
+    const unencodedUri = uris[0].replace(/%2B/g, '+').replace(/%2F/g, '/').replace(/%3D/g, '=');
+    const batch = parseGoogleMigrationUri(unencodedUri);
+    expect(batch.accounts[0].secret).toBe('JBSWY3DPEHPK3PXP');
+  });
+
   it('splits large account lists into multiple batches', () => {
     const manyAccounts: AuthenticatorAccount[] = Array.from({ length: 25 }, (_, i) => ({
       id: `acc-${i}`,

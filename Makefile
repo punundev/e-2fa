@@ -10,6 +10,8 @@ dev:
 
 build:
 	pnpm run build
+	rm -f extension.zip
+	cd dist && zip -r ../extension.zip .
 
 test:
 	pnpm run test
@@ -18,4 +20,4 @@ typecheck:
 	pnpm run typecheck
 
 clean:
-	rm -rf dist
+	rm -rf dist extension.zip

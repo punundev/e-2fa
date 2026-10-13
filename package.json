@@ -1,12 +1,13 @@
 {
   "name": "secureauth-2fa",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "SecureAuth — Production-Ready Chrome Extension for 2FA Authenticator",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "version:bump": "node scripts/bump-version.js",
+    "build": "node scripts/bump-version.js && vite build",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

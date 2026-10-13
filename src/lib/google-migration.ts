@@ -175,13 +175,24 @@ export function parseGoogleMigrationUri(uriString: string): MigrationBatch {
     throw new Error('Not a valid Google Authenticator migration URI');
   }
 
-  const url = new URL(trimmed);
-  const dataParam = url.searchParams.get('data');
-  if (!dataParam) {
+  let rawData = '';
+  const match = trimmed.match(/[?&]data=([^&#]+)/);
+  if (match) {
+    rawData = match[1];
+  } else {
+    const url = new URL(trimmed);
+    rawData = url.searchParams.get('data') || '';
+  }
+  if (!rawData) {
     throw new Error('Missing data parameter in migration URI');
   }
 
-  const decodedData = decodeURIComponent(dataParam);
+  let decodedData: string;
+  try {
+    decodedData = decodeURIComponent(rawData);
+  } catch {
+    decodedData = rawData;
+  }
   const payloadBytes = base64ToBytes(decodedData);
 
   const reader = Reader.create(payloadBytes);
