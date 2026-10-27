@@ -20,6 +20,16 @@ describe('Password Generator', () => {
     }
   });
 
+  it('defaults to symbols unchecked and generates alphanumeric by default', () => {
+    const opts = getSessionPasswordOptions();
+    expect(opts.symbols).toBe(false);
+
+    const pwd = generatePassword();
+    expect(pwd.length).toBe(32);
+    const hasSym = [...pwd].some((c) => CHARSET_SYMBOLS.includes(c));
+    expect(hasSym).toBe(false);
+  });
+
   it('generates passwords of default length 32', () => {
     const pwd = generatePassword();
     expect(pwd.length).toBe(32);

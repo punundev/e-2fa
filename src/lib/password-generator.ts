@@ -19,11 +19,12 @@ export const DEFAULT_PASSWORD_OPTIONS: PasswordGeneratorOptions = {
   uppercase: true,
   lowercase: true,
   numbers: true,
-  symbols: true,
+  symbols: false,
 };
 
-const SESSION_STORAGE_KEY = 'secureauth_saved_password';
-const SESSION_STORAGE_OPTIONS_KEY = 'secureauth_saved_password_options';
+const STORAGE_PASSWORD_KEY = 'secureauth_saved_password_v2';
+const STORAGE_OPTIONS_KEY = 'secureauth_saved_password_options_v2';
+const LEGACY_STORAGE_PASSWORD_KEY = 'secureauth_saved_password';
 
 export function generatePassword(options: Partial<PasswordGeneratorOptions> = {}): string {
   const opts: PasswordGeneratorOptions = {
@@ -96,6 +97,12 @@ const inMemoryStorage = new Map<string, string>();
 
 function getStorage(): Storage | null {
   try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage;
+    }
+    if (typeof localStorage !== 'undefined') {
+      return localStorage;
+    }
     if (typeof window !== 'undefined' && window.sessionStorage) {
       return window.sessionStorage;
     }
@@ -146,24 +153,30 @@ function removeStorageItem(key: string): void {
 }
 
 export function getSessionPassword(): string | null {
-  return getStorageItem(SESSION_STORAGE_KEY);
+  return (
+    getStorageItem(STORAGE_PASSWORD_KEY) ||
+    getStorageItem(LEGACY_STORAGE_PASSWORD_KEY)
+  );
 }
 
 export function setSessionPassword(password: string): void {
-  setStorageItem(SESSION_STORAGE_KEY, password);
+  setStorageItem(STORAGE_PASSWORD_KEY, password);
+  setStorageItem(LEGACY_STORAGE_PASSWORD_KEY, password);
 }
 
 export function clearSessionPassword(): void {
-  removeStorageItem(SESSION_STORAGE_KEY);
+  removeStorageItem(STORAGE_PASSWORD_KEY);
+  removeStorageItem(LEGACY_STORAGE_PASSWORD_KEY);
 }
 
 export function getSessionPasswordOptions(): PasswordGeneratorOptions {
   try {
-    const raw = getStorageItem(SESSION_STORAGE_OPTIONS_KEY);
+    const raw = getStorageItem(STORAGE_OPTIONS_KEY);
     if (raw) {
+      const parsed = JSON.parse(raw);
       return {
         ...DEFAULT_PASSWORD_OPTIONS,
-        ...JSON.parse(raw),
+        ...parsed,
       };
     }
   } catch {
@@ -174,9 +187,10 @@ export function getSessionPasswordOptions(): PasswordGeneratorOptions {
 
 export function setSessionPasswordOptions(options: PasswordGeneratorOptions): void {
   try {
-    setStorageItem(SESSION_STORAGE_OPTIONS_KEY, JSON.stringify(options));
+    setStorageItem(STORAGE_OPTIONS_KEY, JSON.stringify(options));
   } catch {
     // empty
   }
 }
+
 
