@@ -288,7 +288,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-3 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
         <input
           ref={fileInputRef}
           type="file"
@@ -398,7 +398,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={handleUploadBoxClick}
-                className={`flex flex-col items-center justify-center p-5 rounded-xl border-1 border-dashed transition-colors cursor-pointer text-center ${
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border-1 border-dashed transition-colors cursor-pointer text-center ${
                   isDragging
                     ? "border-[var(--accent)] bg-[var(--accent-glow)]"
                     : "border-[var(--border-subtle)] hover:border-[var(--accent)] app-bg-subtle hover:bg-[var(--bg-subtle-hover)]"

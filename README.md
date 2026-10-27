@@ -25,6 +25,10 @@ A production-ready, security-focused Google Chrome extension (Manifest V3) for m
   - 100% local operation inside IndexedDB.
   - Zero external network requests, analytics, or telemetry.
   - No account registration or cloud services required.
+- **Strong Password Generator**:
+  - Cryptographically secure random password generation with presets starting from 32, 64, 128, to 256 characters.
+  - "Mix Strong" mode combining uppercase letters, lowercase letters, numbers, and symbols.
+  - Session-bound retention that preserves the generated password until you create a new one or close the tab.
 - **Polished UI/UX**:
   - Lightweight Chrome action popup (~380px width) with smooth circular countdown animations.
   - 3-Axis Customization:

@@ -3,7 +3,7 @@ import { App as PopupApp } from "../popup/App";
 
 export const App: React.FC = () => {
   return (
-    <div className="min-h-screen app-shell flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen app-shell flex flex-col items-center justify-center p-3">
       <div className="w-full max-w-md rounded-2xl shadow-sm overflow-hidden">
         <PopupApp />
       </div>

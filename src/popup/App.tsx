@@ -10,6 +10,7 @@ import {
   Sun,
   Moon,
   CheckCircle2,
+  KeyRound,
 } from "lucide-react";
 import { AuthenticatorAccount, AppSettings, VaultState } from "../types";
 import {
@@ -36,6 +37,7 @@ import { ExportModal } from "./components/ExportModal";
 import { AccountDetailsModal } from "./components/AccountDetailsModal";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { PasswordDialog } from "./components/PasswordDialog";
+import { PasswordGeneratorModal } from "./components/PasswordGeneratorModal";
 import { t } from "../lib/i18n";
 import { getWallpaperStyle } from "../lib/wallpaper";
 
@@ -70,6 +72,8 @@ export const App: React.FC = () => {
   );
   const [showExportModal, setShowExportModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showPasswordGeneratorModal, setShowPasswordGeneratorModal] =
+    useState(false);
   const [editingAccount, setEditingAccount] =
     useState<AuthenticatorAccount | null>(null);
   const [detailsAccount, setDetailsAccount] =
@@ -112,6 +116,9 @@ export const App: React.FC = () => {
       if (params.get("picker") === "1") {
         setAutoTriggerPicker(true);
       }
+    }
+    if (params.get("action") === "password" || params.get("password") === "1") {
+      setShowPasswordGeneratorModal(true);
     }
   }, []);
 
@@ -364,6 +371,15 @@ export const App: React.FC = () => {
           )}
 
           <button
+            onClick={() => setShowPasswordGeneratorModal(true)}
+            className="app-btn-icon"
+            title={t("password_generator_title")}
+            aria-label={t("password_generator_title")}
+          >
+            <KeyRound size={15} />
+          </button>
+
+          <button
             onClick={handleToggleTheme}
             className="app-btn-icon"
             title={
@@ -431,11 +447,11 @@ export const App: React.FC = () => {
                 ))}
               </div>
             ) : accounts.length > 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center app-text-muted text-xs">
+              <div className="flex-1 flex flex-col items-center justify-center p-3 text-center app-text-muted text-xs">
                 <p>{t("no_accounts_found")}</p>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-4 text-center my-auto">
+              <div className="flex-1 flex flex-col items-center justify-center p-3 text-center my-auto">
                 <img
                   src="icons/logo.png"
                   alt="SecureAuth Logo"
@@ -534,7 +550,15 @@ export const App: React.FC = () => {
             setImportModalTab(tab);
             setShowImportModal(true);
           }}
+          onOpenPasswordGenerator={() => setShowPasswordGeneratorModal(true)}
           onClose={() => setShowSettingsModal(false)}
+        />
+      )}
+
+      {showPasswordGeneratorModal && (
+        <PasswordGeneratorModal
+          onClose={() => setShowPasswordGeneratorModal(false)}
+          onToast={showToast}
         />
       )}
     </div>

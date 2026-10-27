@@ -288,7 +288,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-3 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <h3 className="text-sm font-semibold app-text-primary">
             {initialAccount ? t("menu_edit") : t("add_account")}
@@ -354,7 +354,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center p-5 rounded-xl border-1 border-dashed border-[var(--border-subtle)] hover:border-[var(--accent)] bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle-hover)] transition-colors cursor-pointer text-center"
+              className="flex flex-col items-center justify-center p-3 rounded-xl border-1 border-dashed border-[var(--border-subtle)] hover:border-[var(--accent)] bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle-hover)] transition-colors cursor-pointer text-center"
             >
               <Upload size={24} className="app-text-accent mb-2" />
               <span className="text-xs font-medium app-text-primary">

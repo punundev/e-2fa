@@ -252,8 +252,8 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-xs rounded-xl app-modal p-4 shadow-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-xs rounded-xl app-modal p-3 shadow-sm">
             <h4 className="text-sm font-semibold app-text-primary mb-1">
               {t("delete_confirm_title")}
             </h4>

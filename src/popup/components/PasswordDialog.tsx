@@ -62,7 +62,7 @@ export const PasswordDialog: React.FC<PasswordDialogProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 min-h-[360px] text-center">
+    <div className="flex flex-col items-center justify-center p-3 min-h-[360px] text-center">
       <div className="w-12 h-12 rounded-2xl app-bg-subtle border border-[var(--border-subtle)] flex items-center justify-center app-text-accent mb-3">
         {mode === "setup" ? <ShieldCheck size={26} /> : <Lock size={26} />}
       </div>

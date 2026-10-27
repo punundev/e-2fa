@@ -108,7 +108,7 @@ export const ExportContent: React.FC<{ accounts: AuthenticatorAccount[] }> = ({
 
   if (accounts.length === 0) {
     return (
-      <div className="p-6 text-center app-text-muted text-xs">
+      <div className="p-3 text-center app-text-muted text-xs">
         <p>{t("no_accounts_to_export")}</p>
       </div>
     );
@@ -355,7 +355,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-3 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <h3 className="text-sm font-semibold app-text-primary">
             {t("export_title")}

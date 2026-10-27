@@ -19,6 +19,7 @@ import {
   Check,
   Download,
   ArrowUpDown,
+  KeyRound,
 } from "lucide-react";
 import { AppSettings, VaultState, ThemeColor, ThemeDesign } from "../../types";
 import { t, TranslationKey } from "../../lib/i18n";
@@ -91,6 +92,7 @@ interface SettingsPanelProps {
   onWipeData: () => void;
   onClose: () => void;
   onOpenImportExport?: (tab: "import" | "export") => void;
+  onOpenPasswordGenerator?: () => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -101,6 +103,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onWipeData,
   onClose,
   onOpenImportExport,
+  onOpenPasswordGenerator,
 }) => {
   const [showWipeConfirm, setShowWipeConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -121,7 +124,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-sm rounded-2xl app-modal p-4 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl app-modal p-3 shadow-sm flex flex-col gap-2 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
           <h3 className="text-sm font-semibold app-text-primary">
             {t("settings_title")}
@@ -438,6 +441,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
           <div className="pt-2 border-t border-[var(--border-subtle)]">
             <h4 className="text-[11px] font-semibold app-text-muted uppercase tracking-wider mb-1.5 flex items-center gap-1">
+              <KeyRound size={12} className="app-text-accent" />
+              <span>{t("password_generator_title")}</span>
+            </h4>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenPasswordGenerator?.();
+              }}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-md app-btn-secondary text-xs font-medium transition-colors"
+            >
+              <KeyRound size={13} className="app-text-accent" />
+              <span>{t("password_create_new")}</span>
+            </button>
+          </div>
+
+          <div className="pt-2 border-t border-[var(--border-subtle)]">
+            <h4 className="text-[11px] font-semibold app-text-muted uppercase tracking-wider mb-1.5 flex items-center gap-1">
               <ArrowUpDown size={12} className="app-text-accent" />
               <span>{t("export_import_center")}</span>
             </h4>
@@ -495,8 +516,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </div>
 
         {showWipeConfirm && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-            <div className="w-full max-w-xs rounded-xl app-modal border border-red-500/40 p-4 shadow-sm text-center">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-3 bg-black/80 backdrop-blur-xs">
+            <div className="w-full max-w-xs rounded-xl app-modal border border-red-500/40 p-3 shadow-sm text-center">
               <Trash2 size={24} className="text-red-500 mx-auto mb-2" />
               <h4 className="text-sm font-bold text-red-400 mb-1">
                 {t("wipe_all_title")}
