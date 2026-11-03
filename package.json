@@ -1,6 +1,6 @@
 {
   "name": "secureauth-2fa",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "SecureAuth — Production-Ready Chrome Extension for 2FA Authenticator",
   "private": true,
   "type": "module",
