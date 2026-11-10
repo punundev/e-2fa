@@ -4,3 +4,5 @@ dist/
 *.log
 node_modules
 extension.zip
+
+.env

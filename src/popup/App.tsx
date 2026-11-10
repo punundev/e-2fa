@@ -11,8 +11,12 @@ import {
   Moon,
   CheckCircle2,
   KeyRound,
+  Cloud,
+  User,
 } from "lucide-react";
 import { AuthenticatorAccount, AppSettings, VaultState } from "../types";
+import { AuthSession, getStoredSession } from "../lib/api-client";
+import { AccountModal } from "./components/AccountModal";
 import {
   getAllAccounts,
   getSettings,
@@ -72,6 +76,8 @@ export const App: React.FC = () => {
   );
   const [showExportModal, setShowExportModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [authSession, setAuthSession] = useState<AuthSession | null>(null);
   const [showPasswordGeneratorModal, setShowPasswordGeneratorModal] =
     useState(false);
   const [editingAccount, setEditingAccount] =
@@ -97,6 +103,8 @@ export const App: React.FC = () => {
       setVaultState(state);
       const appSettings = await getSettings();
       setSettings(appSettings);
+      const session = await getStoredSession();
+      setAuthSession(session);
 
       if (!state.isLocked && state.isInitialized) {
         const loaded = await getAllAccounts();
@@ -371,6 +379,21 @@ export const App: React.FC = () => {
           )}
 
           <button
+            onClick={() => setShowAccountModal(true)}
+            className="app-btn-icon relative"
+            title={authSession ? `Signed in (${authSession.user.email})` : "Account & Cloud Sync"}
+          >
+            {authSession ? (
+              <>
+                <Cloud size={15} className="text-indigo-400" />
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              </>
+            ) : (
+              <User size={15} />
+            )}
+          </button>
+
+          <button
             onClick={() => setShowPasswordGeneratorModal(true)}
             className="app-btn-icon"
             title={t("password_generator_title")}
@@ -559,6 +582,21 @@ export const App: React.FC = () => {
         <PasswordGeneratorModal
           onClose={() => setShowPasswordGeneratorModal(false)}
           onToast={showToast}
+        />
+      )}
+
+      {showAccountModal && (
+        <AccountModal
+          isOpen={showAccountModal}
+          onClose={async () => {
+            setShowAccountModal(false);
+            const session = await getStoredSession();
+            setAuthSession(session);
+          }}
+          onAccountsUpdated={async () => {
+            const updated = await getAllAccounts();
+            setAccounts(updated);
+          }}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-.PHONY: all install dev build test typecheck clean
+.PHONY: all install dev build test typecheck clean server migrate
 
 all: install typecheck test build
 
@@ -7,6 +7,12 @@ install:
 
 dev:
 	pnpm run dev
+
+server:
+	pnpm run server:dev
+
+migrate:
+	pnpm run db:migrate
 
 build:
 	pnpm run build

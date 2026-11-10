@@ -23,8 +23,13 @@ A production-ready, security-focused Google Chrome extension (Manifest V3) for m
   - Fresh random 96-bit IV generated for every encryption operation.
 - **Privacy First & Offline**:
   - 100% local operation inside IndexedDB.
-  - Zero external network requests, analytics, or telemetry.
-  - No account registration or cloud services required.
+  - Zero external network requests by default.
+  - No account registration or cloud services required to generate TOTP codes.
+- **Optional Zero-Knowledge Cloud Sync**:
+  - Encrypted multi-device sync powered by client-side AES-256-GCM.
+  - Serverless Node.js / Express REST API compatible with Vercel and Neon PostgreSQL.
+  - Self-hostable via Docker Compose or custom servers.
+  - Device management, revocation, and permanent account deletion.
 - **Strong Password Generator**:
   - Cryptographically secure random password generation with presets starting from 32, 64, 128, to 256 characters.
   - "Mix Strong" mode combining uppercase letters, lowercase letters, numbers, and symbols.
@@ -180,6 +185,39 @@ Before publishing to the Chrome Web Store:
 2. Verify all icons in `public/icons/` (16x16, 32x32, 48x48, 128x128).
 3. Upload `extension.zip` to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 4. Attach `PRIVACY.md` in the store privacy declaration.
+
+---
+
+## Technology Stack & Credits
+
+| Technology | Role | Documentation |
+|---|---|---|
+| **Chrome Extension (MV3)** | Client Platform | [Chrome Extensions](https://developer.chrome.com/docs/extensions/) |
+| **React 19** | User Interface | [React Docs](https://react.dev) |
+| **TypeScript** | Type-Safe Programming | [TypeScript](https://www.typescriptlang.org) |
+| **Tailwind CSS 4** | Utility-First Styling | [Tailwind CSS](https://tailwindcss.com) |
+| **Vite 8** | Frontend Tooling & Bundling | [Vite](https://vite.dev) |
+| **Express** | Serverless Backend REST API | [Express.js](https://expressjs.com) |
+| **Neon PostgreSQL** | Serverless Cloud Database | [Neon](https://neon.tech) |
+| **Web Crypto API** | Client Zero-Knowledge AES-256-GCM | [W3C Web Cryptography](https://www.w3.org/TR/WebCryptoAPI/) |
+| **Vitest** | Testing & Test Suite | [Vitest](https://vitest.dev) |
+
+---
+
+## Documentation
+
+Full architectural specifications, security guides, and deployment manuals are available in the [`docs/`](file:///mnt/storage/Personal/extension/e-2fa/docs) directory:
+- [System Architecture](file:///mnt/storage/Personal/extension/e-2fa/docs/ARCHITECTURE.md)
+- [Zero-Knowledge Encryption](file:///mnt/storage/Personal/extension/e-2fa/docs/ENCRYPTION.md)
+- [Authentication & Sessions](file:///mnt/storage/Personal/extension/e-2fa/docs/AUTHENTICATION.md)
+- [Cloud Synchronization & Merging](file:///mnt/storage/Personal/extension/e-2fa/docs/SYNCHRONIZATION.md)
+- [Self-Hosting Guide](file:///mnt/storage/Personal/extension/e-2fa/docs/SELF_HOSTING.md)
+- [Vercel Deployment Guide](file:///mnt/storage/Personal/extension/e-2fa/docs/VERCEL_DEPLOYMENT.md)
+- [Database Schema & Migrations](file:///mnt/storage/Personal/extension/e-2fa/docs/DATABASE.md)
+- [REST API Reference](file:///mnt/storage/Personal/extension/e-2fa/docs/API.md)
+- [Recovery Strategy](file:///mnt/storage/Personal/extension/e-2fa/docs/RECOVERY.md)
+- [Security Audit Report](file:///mnt/storage/Personal/extension/e-2fa/docs/SECURITY_AUDIT.md)
+- [Development Guide](file:///mnt/storage/Personal/extension/e-2fa/docs/DEVELOPMENT.md)
 
 ---
 
