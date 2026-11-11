@@ -6,7 +6,7 @@ export interface AppConfig {
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
-  apiBaseUrl: 'https://api.secureauth.dev', // Can be customized to local or self-hosted server
+  apiBaseUrl: 'https://2fa.synergykh.site', // Official SecureAuth Cloud API
   isSelfHosted: false,
 };
 
