@@ -45,6 +45,17 @@ export function createApp(): Express {
     });
   });
 
+  // Root greeting
+  app.get('/', (_req: Request, res: Response) => {
+    res.json({
+      name: 'SecureAuth 2FA Cloud API',
+      status: 'online',
+      version: '1.0.14',
+      documentation: 'https://github.com/pleisvay/e-2fa',
+      health: '/api/health',
+    });
+  });
+
   // API Routes
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/vault', vaultRouter);
