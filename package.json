@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit",
+    "vercel-build": "vite build",
     "server:dev": "tsx server/src/index.ts",
     "db:migrate": "tsx server/src/database/migrate.ts"
   },
