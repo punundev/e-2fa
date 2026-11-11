@@ -83,7 +83,7 @@ export async function unlockCloudVault(password: string): Promise<CryptoKey> {
 }
 
 /**
- * Pushes the local vault up to the cloud.
+ * Pushes the local vault up to the cloud, automatically handling conflicts by pulling and merging first.
  */
 export async function pushCloudSync(dek?: CryptoKey): Promise<{ revision: number }> {
   const session = await getStoredSession();
@@ -91,7 +91,7 @@ export async function pushCloudSync(dek?: CryptoKey): Promise<{ revision: number
     throw new Error('Cloud sync is not enabled');
   }
 
-  const keyToUse = dek || cachedDek;
+  const keyToUse = dek || (await getMemoryDek());
   if (!keyToUse) {
     throw new Error('Vault encryption key is locked. Please re-authenticate.');
   }
@@ -107,20 +107,53 @@ export async function pushCloudSync(dek?: CryptoKey): Promise<{ revision: number
 
   const encryptedPayload = await encryptClientVault(keyToUse, vaultData, session.user.email);
 
-  const res = await apiRequest('/api/v1/sync/push', {
-    method: 'POST',
-    body: JSON.stringify({
-      baseRevision: session.localRevision || 0,
-      deviceId: session.deviceId,
-      vault: encryptedPayload,
-    }),
-  });
+  try {
+    const res = await apiRequest('/api/v1/sync/push', {
+      method: 'POST',
+      body: JSON.stringify({
+        baseRevision: session.localRevision || 0,
+        deviceId: session.deviceId,
+        vault: encryptedPayload,
+      }),
+    });
 
-  session.localRevision = res.revision;
-  session.lastSyncedAt = Date.now();
-  await saveStoredSession(session);
+    session.localRevision = res.revision;
+    session.lastSyncedAt = Date.now();
+    await saveStoredSession(session);
 
-  return { revision: res.revision };
+    return { revision: res.revision };
+  } catch (err: any) {
+    // If conflict detected, pull latest remote changes, merge them, and retry push
+    if (err.status === 409 || (err.message && err.message.includes('Conflict detected'))) {
+      await pullCloudSync(keyToUse);
+      const updatedSession = await getStoredSession();
+      const updatedAccounts = await getAllAccounts();
+      const retryVaultData: ClientVaultData = {
+        accounts: updatedAccounts,
+        settings,
+        exportedAt: Date.now(),
+      };
+      const retryPayload = await encryptClientVault(keyToUse, retryVaultData, session.user.email);
+
+      const retryRes = await apiRequest('/api/v1/sync/push', {
+        method: 'POST',
+        body: JSON.stringify({
+          baseRevision: updatedSession?.localRevision || 0,
+          deviceId: session.deviceId,
+          vault: retryPayload,
+        }),
+      });
+
+      if (updatedSession) {
+        updatedSession.localRevision = retryRes.revision;
+        updatedSession.lastSyncedAt = Date.now();
+        await saveStoredSession(updatedSession);
+      }
+
+      return { revision: retryRes.revision };
+    }
+    throw err;
+  }
 }
 
 /**
