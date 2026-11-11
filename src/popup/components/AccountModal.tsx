@@ -52,6 +52,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [password, setPassword] = useState("");
   const [deviceName, setDeviceName] = useState("My Browser Extension");
   const [serverUrl, setServerUrl] = useState("");
+  const [unlockPassword, setUnlockPassword] = useState("");
+  const [showUnlockInput, setShowUnlockInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -210,11 +212,18 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     setSuccess(null);
 
     try {
-      const dek = getMemoryDek();
+      let dek = await getMemoryDek();
       if (!dek) {
-        throw new Error(
-          "Vault is locked. Please sign in again with your password.",
-        );
+        if (!unlockPassword) {
+          setShowUnlockInput(true);
+          setSyncing(false);
+          return;
+        }
+        const envelope = await apiRequest("/api/v1/vault/envelope");
+        dek = await unwrapVaultKey(envelope, unlockPassword);
+        await setMemoryDek(dek);
+        setShowUnlockInput(false);
+        setUnlockPassword("");
       }
       await pushCloudSync(dek);
       await pullCloudSync(dek);
@@ -328,6 +337,29 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               </div>
 
               {/* Sync Actions */}
+              {showUnlockInput && (
+                <div className="p-3 bg-amber-950/40 border border-amber-800/80 rounded-xl space-y-2">
+                  <div className="text-xs text-amber-200 font-medium">
+                    Enter master password to unlock cloud sync:
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={unlockPassword}
+                      onChange={(e) => setUnlockPassword(e.target.value)}
+                      placeholder="Master password"
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      onClick={handleSyncNow}
+                      className="py-1 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium"
+                    >
+                      Unlock & Sync
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <button
                   onClick={handleSyncNow}
