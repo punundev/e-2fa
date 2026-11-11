@@ -709,9 +709,10 @@ deviceRouter.delete("/:deviceId", async (req, res) => {
 function createApp() {
 	const app = express();
 	app.disable("x-powered-by");
-	const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS ? process.env.CORS_ALLOWED_ORIGINS.split(",").map((o) => o.trim()) : "*";
 	app.use(cors({
-		origin: allowedOrigins,
+		origin: (origin, callback) => {
+			callback(null, true);
+		},
 		methods: [
 			"GET",
 			"POST",
