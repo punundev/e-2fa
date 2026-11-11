@@ -765,7 +765,7 @@ function createApp() {
 	return app;
 }
 //#endregion
-//#region api/index.ts
+//#region server/src/serverless.ts
 var app = createApp();
 //#endregion
 export { app as default };
