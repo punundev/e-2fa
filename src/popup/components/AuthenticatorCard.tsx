@@ -16,6 +16,7 @@ import { formatOtpUri } from "../../lib/otp-uri";
 import { CountdownRing } from "./CountdownRing";
 import { CodeDisplay } from "./CodeDisplay";
 import { BrandLogo } from "./BrandLogo";
+import { normalizeIssuerDisplayName } from "../../lib/brand-icons";
 import { t } from "../../lib/i18n";
 
 interface AuthenticatorCardProps {
@@ -134,7 +135,7 @@ export const AuthenticatorCard: React.FC<AuthenticatorCardProps> = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-semibold truncate leading-snug">
-                {account.issuer}
+                {normalizeIssuerDisplayName(account.issuer)}
               </h3>
               {account.group && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded app-badge font-medium">

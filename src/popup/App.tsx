@@ -44,6 +44,7 @@ import { PasswordDialog } from "./components/PasswordDialog";
 import { PasswordGeneratorModal } from "./components/PasswordGeneratorModal";
 import { t } from "../lib/i18n";
 import { getWallpaperStyle } from "../lib/wallpaper";
+import { normalizeIssuerDisplayName } from "../lib/brand-icons";
 
 export const App: React.FC = () => {
   const [vaultState, setVaultState] = useState<VaultState>({
@@ -67,6 +68,7 @@ export const App: React.FC = () => {
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("All");
+  const [selectedPlatform, setSelectedPlatform] = useState("All");
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
@@ -260,13 +262,45 @@ export const App: React.FC = () => {
     return Array.from(set);
   }, [accounts]);
 
+  const availablePlatforms = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of accounts) {
+      const issuer = normalizeIssuerDisplayName(a.issuer);
+      if (issuer && issuer !== "Unknown") set.add(issuer);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [accounts]);
+
   const filteredAccounts = useMemo(() => {
     let list = accounts.filter((acc) => {
       const q = searchQuery.toLowerCase();
+      const normIssuer = normalizeIssuerDisplayName(acc.issuer).toLowerCase();
+      const rawIssuer = acc.issuer.toLowerCase();
+      const nameLower = acc.name.toLowerCase();
+
       const matchesSearch =
-        acc.issuer.toLowerCase().includes(q) ||
-        acc.name.toLowerCase().includes(q);
+        normIssuer.includes(q) ||
+        rawIssuer.includes(q) ||
+        nameLower.includes(q);
       if (!matchesSearch) return false;
+
+      if (selectedPlatform !== "All") {
+        const targetPlatform = selectedPlatform.toLowerCase();
+        const issuerMatch =
+          normIssuer === targetPlatform || rawIssuer === targetPlatform;
+        const gmailSpecialCase =
+          targetPlatform === "google" &&
+          (rawIssuer.includes("google") ||
+            rawIssuer.includes("gmail") ||
+            nameLower.includes("@gmail.com"));
+        const supabaseSpecialCase =
+          targetPlatform === "supabase" &&
+          (rawIssuer.includes("supabase") || rawIssuer === "app.supabase.com");
+
+        if (!issuerMatch && !gmailSpecialCase && !supabaseSpecialCase) {
+          return false;
+        }
+      }
 
       if (selectedGroup === "Pinned") return Boolean(acc.isPinned);
       if (selectedGroup !== "All") return acc.group === selectedGroup;
@@ -283,8 +317,107 @@ export const App: React.FC = () => {
       return a.issuer.localeCompare(b.issuer);
     });
 
-    return list;
-  }, [accounts, searchQuery, selectedGroup, settings.defaultSort]);
+    // Deduplicate displayed accounts by (issuer + name) or secret so duplicate entries are hidden from view without deleting
+    const seenDisplayKeys = new Set<string>();
+    const deduplicatedList: AuthenticatorAccount[] = [];
+
+    for (const acc of list) {
+      const issuerKey = acc.issuer.trim().toLowerCase();
+      const nameKey = acc.name.trim().toLowerCase();
+      const secretKey = (acc.secret || "").replace(/[\s-=]/g, "").toUpperCase();
+
+      const accountKey = `${issuerKey}:::${nameKey}`;
+      const fallbackSecretKey = secretKey ? `secret:::${secretKey}` : null;
+
+      if (seenDisplayKeys.has(accountKey) || (fallbackSecretKey && seenDisplayKeys.has(fallbackSecretKey))) {
+        continue;
+      }
+
+      seenDisplayKeys.add(accountKey);
+      if (fallbackSecretKey) {
+        seenDisplayKeys.add(fallbackSecretKey);
+      }
+      deduplicatedList.push(acc);
+    }
+
+    return deduplicatedList;
+  }, [accounts, searchQuery, selectedGroup, selectedPlatform, settings.defaultSort]);
+
+  // Compute counts for Group filters based on deduplicated accounts
+  const uniqueAccounts = useMemo(() => {
+    const seenDisplayKeys = new Set<string>();
+    const deduplicatedList: AuthenticatorAccount[] = [];
+
+    for (const acc of accounts) {
+      const issuerKey = acc.issuer.trim().toLowerCase();
+      const nameKey = acc.name.trim().toLowerCase();
+      const secretKey = (acc.secret || "").replace(/[\s-=]/g, "").toUpperCase();
+
+      const accountKey = `${issuerKey}:::${nameKey}`;
+      const fallbackSecretKey = secretKey ? `secret:::${secretKey}` : null;
+
+      if (
+        seenDisplayKeys.has(accountKey) ||
+        (fallbackSecretKey && seenDisplayKeys.has(fallbackSecretKey))
+      ) {
+        continue;
+      }
+
+      seenDisplayKeys.add(accountKey);
+      if (fallbackSecretKey) {
+        seenDisplayKeys.add(fallbackSecretKey);
+      }
+      deduplicatedList.push(acc);
+    }
+    return deduplicatedList;
+  }, [accounts]);
+
+  // Filter accounts by search query first (so counts reflect the current active search)
+  const searchMatchedAccounts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return uniqueAccounts.filter((acc) => {
+      if (!q) return true;
+      const normIssuer = normalizeIssuerDisplayName(acc.issuer).toLowerCase();
+      const rawIssuer = acc.issuer.toLowerCase();
+      const nameLower = acc.name.toLowerCase();
+      return (
+        normIssuer.includes(q) ||
+        rawIssuer.includes(q) ||
+        nameLower.includes(q)
+      );
+    });
+  }, [uniqueAccounts, searchQuery]);
+
+  const groupCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      All: searchMatchedAccounts.length,
+      Pinned: 0,
+    };
+
+    for (const a of searchMatchedAccounts) {
+      if (a.isPinned) {
+        counts.Pinned = (counts.Pinned || 0) + 1;
+      }
+      if (a.group) {
+        counts[a.group] = (counts[a.group] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [searchMatchedAccounts]);
+
+  const platformCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      All: searchMatchedAccounts.length,
+    };
+
+    for (const a of searchMatchedAccounts) {
+      const platform = normalizeIssuerDisplayName(a.issuer);
+      if (platform && platform !== "Unknown") {
+        counts[platform] = (counts[platform] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [searchMatchedAccounts]);
 
   if (loading) {
     return (
@@ -448,6 +581,11 @@ export const App: React.FC = () => {
                 selectedGroup={selectedGroup}
                 onGroupChange={setSelectedGroup}
                 availableGroups={availableGroups}
+                selectedPlatform={selectedPlatform}
+                onPlatformChange={setSelectedPlatform}
+                availablePlatforms={availablePlatforms}
+                groupCounts={groupCounts}
+                platformCounts={platformCounts}
               />
             )}
 

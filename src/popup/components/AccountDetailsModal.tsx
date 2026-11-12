@@ -4,6 +4,7 @@ import { AuthenticatorAccount } from "../../types";
 import { formatOtpUri } from "../../lib/otp-uri";
 import { generateQrDataUrl } from "../../lib/qr-code";
 import { BrandLogo } from "./BrandLogo";
+import { normalizeIssuerDisplayName } from "../../lib/brand-icons";
 import { t } from "../../lib/i18n";
 import { copyToClipboardWithAutoClear } from "../../lib/clipboard";
 
@@ -64,7 +65,7 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
           <BrandLogo issuer={account.issuer} name={account.name} size={36} />
           <div className="text-center">
             <h4 className="text-base font-bold app-text-primary">
-              {account.issuer}
+              {normalizeIssuerDisplayName(account.issuer)}
             </h4>
             <p className="text-xs app-text-secondary">{account.name}</p>
           </div>

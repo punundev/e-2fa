@@ -177,6 +177,49 @@ const BRAND_MAP: Record<string, BrandIconData> = {
   git: toData(siGit),
 };
 
+export function normalizeIssuerDisplayName(issuer?: string): string {
+  if (!issuer) return "Unknown";
+  const trimmed = issuer.trim();
+  const lower = trimmed.toLowerCase();
+
+  // Known service hostname / domain normalization
+  if (lower.includes("supabase") || lower === "app.supabase.com" || lower === "supabase.com") {
+    return "Supabase";
+  }
+  if (lower.includes("github") || lower === "github.com") {
+    return "GitHub";
+  }
+  if (lower.includes("gitlab") || lower === "gitlab.com") {
+    return "GitLab";
+  }
+  if (lower.includes("google") || lower.includes("gmail") || lower === "google.com") {
+    return "Google";
+  }
+  if (lower.includes("bitbucket") || lower === "bitbucket.org") {
+    return "Bitbucket";
+  }
+  if (lower.includes("docker") || lower === "hub.docker.com" || lower === "docker.com") {
+    return "Docker";
+  }
+  if (lower.includes("aws") || lower.includes("amazon") || lower === "aws.amazon.com") {
+    return "Amazon Web Services";
+  }
+  if (lower.includes("cloudflare") || lower === "cloudflare.com" || lower === "dash.cloudflare.com") {
+    return "Cloudflare";
+  }
+  if (lower.includes("digitalocean") || lower === "digitalocean.com" || lower === "cloud.digitalocean.com") {
+    return "DigitalOcean";
+  }
+  if (lower.includes("vercel") || lower === "vercel.com") {
+    return "Vercel";
+  }
+  if (lower.includes("netlify") || lower === "netlify.com" || lower === "app.netlify.com") {
+    return "Netlify";
+  }
+
+  return trimmed;
+}
+
 export function getBrandIcon(
   issuer?: string,
   accountName?: string,

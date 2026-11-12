@@ -13,6 +13,7 @@ export const translations = {
     search_placeholder: 'Search accounts...',
     filter_all: 'All',
     filter_pinned: 'Pinned',
+    all_platforms: 'All Platforms',
     add_account: 'Add Account',
     no_accounts_found: 'No accounts found',
     no_accounts_welcome: 'Welcome to SecureAuth',
