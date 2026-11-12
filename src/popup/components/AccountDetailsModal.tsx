@@ -5,6 +5,7 @@ import { formatOtpUri } from "../../lib/otp-uri";
 import { generateQrDataUrl } from "../../lib/qr-code";
 import { BrandLogo } from "./BrandLogo";
 import { t } from "../../lib/i18n";
+import { copyToClipboardWithAutoClear } from "../../lib/clipboard";
 
 interface AccountDetailsModalProps {
   account: AuthenticatorAccount;
@@ -28,16 +29,20 @@ export const AccountDetailsModal: React.FC<AccountDetailsModalProps> = ({
   }, [account]);
 
   const handleCopySecret = async () => {
-    await navigator.clipboard.writeText(account.secret);
-    setCopiedSecret(true);
-    setTimeout(() => setCopiedSecret(false), 2000);
+    const success = await copyToClipboardWithAutoClear(account.secret);
+    if (success) {
+      setCopiedSecret(true);
+      setTimeout(() => setCopiedSecret(false), 2000);
+    }
   };
 
   const handleCopyUri = async () => {
     const uri = formatOtpUri(account);
-    await navigator.clipboard.writeText(uri);
-    setCopiedUri(true);
-    setTimeout(() => setCopiedUri(false), 2000);
+    const success = await copyToClipboardWithAutoClear(uri);
+    if (success) {
+      setCopiedUri(true);
+      setTimeout(() => setCopiedUri(false), 2000);
+    }
   };
 
   return (

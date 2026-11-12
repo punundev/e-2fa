@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { formatCode } from '../../lib/clock';
 import { t } from '../../lib/i18n';
+import { copyToClipboardWithAutoClear } from '../../lib/clipboard';
 
 interface CodeDisplayProps {
   code: string;
@@ -18,19 +19,8 @@ export const CodeDisplay: React.FC<CodeDisplayProps> = ({
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      onCopied?.();
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback
-      const input = document.createElement('input');
-      input.value = code;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
+    const success = await copyToClipboardWithAutoClear(code);
+    if (success) {
       setCopied(true);
       onCopied?.();
       setTimeout(() => setCopied(false), 2000);

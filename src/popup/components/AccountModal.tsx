@@ -93,9 +93,47 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const handleSaveConfig = async () => {
     if (!serverUrl) return;
     try {
+      const trimmedUrl = serverUrl.trim();
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(trimmedUrl);
+      } catch {
+        setError("Invalid server URL format");
+        return;
+      }
+
+      const isLocal =
+        parsedUrl.hostname === "localhost" ||
+        parsedUrl.hostname === "127.0.0.1" ||
+        parsedUrl.hostname === "[::1]";
+
+      if (!isLocal && parsedUrl.protocol !== "https:") {
+        setError("Production server endpoint must use HTTPS");
+        return;
+      }
+
+      // If running inside Chrome Extension and custom domain is not default, request optional permission
+      if (
+        typeof chrome !== "undefined" &&
+        chrome.permissions &&
+        chrome.permissions.request &&
+        !trimmedUrl.includes("2fa.synergykh.site")
+      ) {
+        const originPattern = `${parsedUrl.origin}/*`;
+        const granted = await chrome.permissions.request({
+          origins: [originPattern],
+        });
+        if (!granted) {
+          setError(
+            "Host permission denied by user. Extension cannot connect to custom endpoint.",
+          );
+          return;
+        }
+      }
+
       const newConfig = {
-        apiBaseUrl: serverUrl,
-        isSelfHosted: !serverUrl.includes("secureauth.dev"),
+        apiBaseUrl: trimmedUrl,
+        isSelfHosted: !trimmedUrl.includes("2fa.synergykh.site"),
       };
       await saveAppConfig(newConfig);
       setSuccess("Server endpoint updated successfully.");

@@ -8,3 +8,9 @@ extension.zip
 .env
 .vercel
 .env*
+
+# Prevent sensitive credential and authenticator exports from being tracked
+*backup*.json
+*.backup
+*.export.json
+

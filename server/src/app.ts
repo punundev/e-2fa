@@ -12,11 +12,46 @@ export function createApp(): Express {
 
   app.disable('x-powered-by');
 
+  const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  const defaultOrigins = [
+    'http://localhost:5000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5000',
+    'http://127.0.0.1:5173',
+  ];
+
+  const allowedOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
+
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow all origins including chrome-extension://, file://, localhost, etc.
-        callback(null, true);
+        // Direct non-browser or curl/worker requests without origin
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        const isExactAllowed = allowedOrigins.includes(origin);
+        // Allow extension origins if wildcard configured or explicitly in allowedOrigins list
+        const isExtensionOrigin =
+          origin.startsWith('chrome-extension://') &&
+          (allowedOrigins.includes('*') ||
+            allowedOrigins.some(
+              (ao) => ao === origin || ao.startsWith('chrome-extension://')
+            ));
+
+        // In production, reject wildcard. In dev, allow if configured
+        const isWildcardAllowed =
+          process.env.NODE_ENV !== 'production' && allowedOrigins.includes('*');
+
+        if (isWildcardAllowed || isExactAllowed || isExtensionOrigin) {
+          callback(null, true);
+        } else {
+          callback(new Error(`Origin ${origin} not allowed by CORS`));
+        }
       },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],

@@ -52,7 +52,8 @@ export async function getMemoryDek(): Promise<CryptoKey | null> {
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.session) {
     try {
       const res = await chrome.storage.session.get([SESSION_DEK_STORAGE_KEY]);
-      b64 = res[SESSION_DEK_STORAGE_KEY] || null;
+      const stored = res[SESSION_DEK_STORAGE_KEY];
+      b64 = typeof stored === 'string' ? stored : null;
     } catch {}
   } else if (typeof sessionStorage !== 'undefined') {
     b64 = sessionStorage.getItem(SESSION_DEK_STORAGE_KEY);

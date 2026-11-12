@@ -19,6 +19,16 @@ export const PasswordDialog: React.FC<PasswordDialogProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showSkipWarning, setShowSkipWarning] = useState(false);
+
+  const handleSkipClicked = () => {
+    setShowSkipWarning(true);
+  };
+
+  const handleConfirmSkip = async () => {
+    setShowSkipWarning(false);
+    await onSkipSetup?.();
+  };
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,13 +154,41 @@ export const PasswordDialog: React.FC<PasswordDialogProps> = ({
             {loading ? "Setting up..." : t("setup_password_btn")}
           </button>
 
-          <button
-            type="button"
-            onClick={onSkipSetup}
-            className="w-full py-1.5 px-3 rounded-lg app-text-muted hover:app-text-primary text-[11px] text-center"
-          >
-            {t("skip_password_btn")}
-          </button>
+          {showSkipWarning ? (
+            <div className="mt-2 p-2.5 rounded-xl bg-amber-950/60 border border-amber-800 text-left flex flex-col gap-2">
+              <div className="flex items-start gap-1.5 text-amber-300 text-xs font-semibold">
+                <AlertCircle size={15} className="shrink-0 mt-0.5 text-amber-400" />
+                <span>Security Warning: Unencrypted Storage</span>
+              </div>
+              <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                Skipping master password will store your TOTP secret keys unencrypted in local browser database. Anyone with access to your computer profile could read them.
+              </p>
+              <div className="flex gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowSkipWarning(false)}
+                  className="flex-1 py-1 px-2 rounded-lg app-btn-primary text-xs font-medium"
+                >
+                  Set Password
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmSkip}
+                  className="py-1 px-2 rounded-lg text-amber-300 hover:text-amber-100 text-[11px] underline"
+                >
+                  I Understand, Skip
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSkipClicked}
+              className="w-full py-1.5 px-3 rounded-lg app-text-muted hover:app-text-primary text-[11px] text-center"
+            >
+              {t("skip_password_btn")}
+            </button>
+          )}
         </form>
       )}
     </div>
